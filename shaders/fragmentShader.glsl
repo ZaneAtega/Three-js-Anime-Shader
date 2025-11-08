@@ -118,7 +118,7 @@ void main() {
     vec3 specular = specularIntensity * directionalLights[0].color * F;
  
     // Rim Light?
-    // Use vNormal instead of vNormalTransformed for a proper rim light (I just think the way this blends feels nicer)
+    // Use vNormal instead of vNormalTransformed for a proper rim light (I just like how this blends into the final result)
     float rimDot = 1.0 - max(dot(vViewDir, vNormalTransformed), 0.0);
     float rimThreshold = 0.2;
     float rimIntensity = rimDot * pow(NdotL, rimThreshold);
