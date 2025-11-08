@@ -33,7 +33,7 @@ uniform sampler2D hairHM;
 
 varying vec2 vUv;
 varying vec3 vNormal;
-varying vec3 vNormalObj;
+varying vec3 vNormalTransformed;
 varying vec3 vViewDir;
 
 const vec3 LUM = vec3(0.2126, 0.7152, 0.0722);
@@ -87,11 +87,11 @@ void main() {
         vec3 faceShadow = texture2D(faceSDF, vUv).rgb;
         vec3 faceShadowFlip = texture2D(faceSDF, vec2(1.0 - vUv.x, vUv.y)).rgb;
 
-        vec3 right = normalize(cross(vec3(0.0, 1.0, 0.0), vNormalObj));
+        vec3 right = normalize(cross(vec3(0.0, 1.0, 0.0), vNormal));
         float RdotL = dot(right.xy, lightDir.xy);
         float faceShadowR = mix(faceShadowFlip.b, faceShadow.b, RdotL * 0.5 + 0.5);
 
-        vec3 forward = normalize(cross(vec3(1.0, 0.0, 0.0), vNormalObj));
+        vec3 forward = normalize(cross(vec3(1.0, 0.0, 0.0), vNormal));
         float FdotL = dot(forward.xy, lightDir.xy);
         float faceShadowF = mix(faceShadowR, 1.0, FdotL * 0.5 + 0.5);
 
@@ -99,14 +99,14 @@ void main() {
         lightDir = lightDir * mix(faceShadowR, faceShadowF, ave) * 1.61803;
     }
 
-    float NdotL = max(dot(vNormalObj, lightDir), 0.0);
+    float NdotL = max(dot(vNormal, lightDir), 0.0);
     float lightIntensity = NdotL; // * shadow;
 
     vec3 directionalLight = directionalLights[0].color * lightIntensity * lightTint;
 
     // Specular
     vec3 halfVector = normalize(lightDir + vViewDir);
-    float NdotH = max(dot(vNormalObj, halfVector), 0.0);
+    float NdotH = max(dot(vNormal, halfVector), 0.0);
 
     float specularIntensity = pow(NdotH, 1000.0 / glossiness); // Blinn-Phong
     specularIntensity *= lightIntensity;
@@ -116,9 +116,10 @@ void main() {
     vec3 F = F0 + (1.0 - F0) * pow(1.0 - dot(halfVector, vViewDir), 5.0);
 
     vec3 specular = specularIntensity * directionalLights[0].color * F;
-
-    // Rim Light
-    float rimDot = 1.0 - max(dot(vViewDir, vNormal), 0.0);
+ 
+    // Rim Light?
+    // Use vNormal instead of vNormalTransformed for a proper rim light (I just think the way this blends feels nicer)
+    float rimDot = 1.0 - max(dot(vViewDir, vNormalTransformed), 0.0);
     float rimThreshold = 0.2;
     float rimIntensity = rimDot * pow(NdotL, rimThreshold);
 

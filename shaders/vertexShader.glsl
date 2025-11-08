@@ -18,7 +18,7 @@ vec3 getMorph2(const in int vertexIndex, const in int morphTargetIndex, const in
 
 varying vec2 vUv;
 varying vec3 vNormal;
-varying vec3 vNormalObj;
+varying vec3 vNormalTransformed;
 varying vec3 vViewDir;
 
 void main() {
@@ -49,8 +49,8 @@ void main() {
 	vec4 viewPosition = viewMatrix * modelPosition;
 	vec4 clipPosition = projectionMatrix * viewPosition;
 
-	vNormal = normalize(normalMatrix * transformedNormal);
-	vNormalObj = normalize(normalMatrix * objectNormal);
+	vNormal = normalize(normalMatrix * objectNormal);
+	vNormalTransformed = normalize(normalMatrix * transformedNormal);
 	vViewDir = normalize(-viewPosition.xyz);
 
 	gl_Position = clipPosition;
