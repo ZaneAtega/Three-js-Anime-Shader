@@ -1,6 +1,7 @@
 I wanted an anime-style shader that works on the web but couldn't find one anywhere... So I wrote my own :P
 
-![Anime-Style Shading of 3D Models (Three.js / GLSL)]()
+![Anime-Style Shading of 3D Models (Three.js / GLSL)](https://github.com/user-attachments/assets/de98dcf2-a49a-43f6-be5c-d6fde2650033)
+
 
 ## Usage
 Just create a ShaderMaterial, set `lights` to `true`, and pass the required uniforms and shaders
