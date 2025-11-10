@@ -36,7 +36,7 @@ outlineMaxBrightness: { value: 0.65 }
 </details>
 <details>
 <summary>Miscellaneous</summary>
-DirectionalLight.intensity = 1.0;<br>
+DirectionalLight.intensity = 0.5;<br>
 UnrealBloomPass 0.25, 0.875, 0.425<br>
 SMAAPass
 </details>
