@@ -51,11 +51,7 @@ void main() {
 
     if (isEye) {
         diffuseColor = mix(
-            mix(
-                diffuseColor,
-                vec3(1.0),
-                texture2D(eyeHighlight, vUv).r
-            ),
+            mix(diffuseColor, vec3(1.0), texture2D(eyeHighlight, vUv).r),
             vec3(1.0),
             texture2D(eyeBottomHighlight, vUv).r
         );
