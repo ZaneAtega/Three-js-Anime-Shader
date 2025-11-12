@@ -21,6 +21,9 @@ varying vec3 vNormal;
 varying vec3 vNormalTransformed;
 varying vec3 vViewDir;
 
+uniform bool isOutline;
+uniform float outlineThickness;
+
 void main() {
 	#include <beginnormal_vertex>
 
@@ -31,6 +34,7 @@ void main() {
 	#include <defaultnormal_vertex>
 
 	#include <begin_vertex>
+	if(isOutline) transformed = vec3(position + normal * outlineThickness);
 
 	for (int i = 0; i < MORPHTARGETS_COUNT; i++) { // morphtarget_vertex
 		if (morphTargetInfluences[i] > 0.0) transformed += getMorph2(gl_VertexID, i, 0) * morphTargetInfluences[i];
