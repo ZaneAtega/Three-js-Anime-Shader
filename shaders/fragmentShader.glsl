@@ -17,6 +17,7 @@ uniform float counterExposure;
 uniform float saturation;
 uniform float hairSaturation;
 
+uniform bool isOutline;
 uniform float outlineBurnIntensity;
 uniform float outlineLightInfluence;
 uniform float outlineMaxBrightness;
@@ -24,30 +25,35 @@ uniform float outlineMaxBrightness;
 // TEXTURES
 
 uniform sampler2D base;
+uniform float greenTolerance;
+
 uniform sampler2D faceSDF;
 uniform sampler2D eyeHighlight;
 uniform sampler2D eyeBottomHighlight;
 uniform sampler2D hairHM;
 
+uniform bool isFace;
+uniform bool isEye;
+uniform bool isHair;
+uniform bool isFur;
+
 /* --- */
 
 varying vec2 vUv;
+varying vec2 vUv2;
 varying vec3 vNormal;
 varying vec3 vNormalTransformed;
 varying vec3 vViewDir;
 
 const vec3 LUM = vec3(0.2126, 0.7152, 0.0722);
-
-uniform bool isEye;
-uniform bool isFace;
-uniform bool isHair;
-uniform bool isOutline;
-
 vec3 adjustSat(vec3 color, float sat) { return mix(vec3(dot(color, LUM)), color, sat); }
+
 float GTTonemap(float x);
 
 void main() {
-    vec3 diffuseColor = texture2D(base, vUv).rgb;
+    vec4 baseTex = texture2D(base, isFur ? vUv2 : vUv);
+    if (distance(baseTex.rgb, vec3(0.0, 1.0, 0.0)) < greenTolerance) discard;
+    vec3 diffuseColor = baseTex.rgb;
 
     if (isEye) {
         diffuseColor = mix(
@@ -85,14 +91,8 @@ void main() {
 
         vec3 right = normalize(cross(vec3(0.0, 1.0, 0.0), vNormal));
         float RdotL = dot(right.xy, lightDir.xy);
-        float faceShadowR = mix(faceShadowFlip.b, faceShadow.b, RdotL * 0.5 + 0.5);
-
-        vec3 forward = normalize(cross(vec3(1.0, 0.0, 0.0), vNormal));
-        float FdotL = dot(forward.xy, lightDir.xy);
-        float faceShadowF = mix(faceShadowR, 1.0, FdotL * 0.5 + 0.5);
-
-        float ave = ((RdotL * 0.5 + 0.5) + (FdotL * 0.5 + 0.5)) / 2.0;
-        lightDir = lightDir * mix(faceShadowR, faceShadowF, ave) * 1.61803;
+        float side = smoothstep(0.47, 0.53, RdotL * 0.5 + 0.5);
+        lightDir *= mix(faceShadowFlip.r, faceShadow.r, side) * 1.34375;
     }
 
     float NdotL = max(dot(vNormal, lightDir), 0.0);
@@ -113,9 +113,8 @@ void main() {
 
     vec3 specular = specularIntensity * directionalLights[0].color * F;
  
-    // Rim Light?
-    // Use vNormal instead of vNormalTransformed for a proper rim light (I just like how this blends into the final result)
-    float rimDot = 1.0 - max(dot(vViewDir, vNormalTransformed), 0.0);
+    // Rim Light
+    float rimDot = 1.0 - max(dot(vNormal, vViewDir), 0.0); // backfaces clamped to 0
     float rimThreshold = 0.2;
     float rimIntensity = rimDot * pow(NdotL, rimThreshold);
 
@@ -153,7 +152,14 @@ void main() {
 
     vec3 finalColor = gamma;
 
-    if(isHair) vec3 finalColor = adjustSat(gamma, hairSaturation);
+    if (isHair) {
+        finalColor = adjustSat(gamma, hairSaturation);
+    } else if (isFur) {
+        float rim = 1.0 - abs(dot(normalize(vNormal), normalize(vViewDir))); // double-sided
+        rim = pow(rim, 3.25);
+        gl_FragColor = vec4(finalColor, texture2D(base, vUv2).r * rim);
+        return;
+    }
 
     gl_FragColor = vec4(finalColor, 1.0);
 }

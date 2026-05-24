@@ -6,6 +6,16 @@ I wanted an anime-style shader that runs on the web but couldn't find one anywhe
 ## Usage
 Just create a ShaderMaterial, set `lights` to `true`, and pass the required uniforms and shaders
 
+<details>
+<summary>Additional ShaderMaterial settings for fur</summary>
+
+```js
+material.transparent = true;
+material.side = THREE.DoubleSide;
+material.depthWrite = false;
+```
+</details>
+
 Three.js r152:
 
 <details>
@@ -14,6 +24,8 @@ Three.js r152:
 ```js
 antialias = true;
 physicallyCorrectLights = true;
+shadowMap.enabled = true;
+shadowMap.type = THREE.VSMShadowMap;
 toneMapping = THREE.ACESFilmicToneMapping;
 toneMappingExposure = 0.3; // Compensating for SMAA/SSAA post-processing, which makes it look overexposed
 ```

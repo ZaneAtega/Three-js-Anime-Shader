@@ -17,6 +17,7 @@ vec3 getMorph2(const in int vertexIndex, const in int morphTargetIndex, const in
 }
 
 varying vec2 vUv;
+varying vec2 vUv2;
 varying vec3 vNormal;
 varying vec3 vNormalTransformed;
 varying vec3 vViewDir;
@@ -34,7 +35,7 @@ void main() {
 	#include <defaultnormal_vertex>
 
 	#include <begin_vertex>
-	if(isOutline) transformed = vec3(position + normal * outlineThickness);
+	if (isOutline) transformed = vec3(position + normal * outlineThickness);
 
 	for (int i = 0; i < MORPHTARGETS_COUNT; i++) { // morphtarget_vertex
 		if (morphTargetInfluences[i] > 0.0) transformed += getMorph2(gl_VertexID, i, 0) * morphTargetInfluences[i];
@@ -48,6 +49,7 @@ void main() {
 	// #include <shadowmap_vertex>
 
 	vUv = uv;
+	vUv2 = uv2;
 
 	vec4 modelPosition = modelMatrix * vec4(transformed, 1.0);
 	vec4 viewPosition = viewMatrix * modelPosition;
