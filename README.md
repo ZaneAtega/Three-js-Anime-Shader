@@ -24,8 +24,6 @@ Three.js r152:
 ```js
 antialias = true;
 physicallyCorrectLights = true;
-shadowMap.enabled = true;
-shadowMap.type = THREE.VSMShadowMap;
 toneMapping = THREE.ACESFilmicToneMapping;
 toneMappingExposure = 0.3; // Compensating for SMAA/SSAA post-processing, which makes it look overexposed
 ```
