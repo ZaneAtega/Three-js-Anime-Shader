@@ -21,11 +21,15 @@ uniform bool isOutline;
 uniform float outlineBurnIntensity;
 uniform float outlineLightInfluence;
 uniform float outlineMaxBrightness;
+uniform float outlineMaxBrightnessHair;
 
 // TEXTURES
 
 uniform sampler2D base;
 uniform float greenTolerance;
+
+uniform sampler2D outlineMask;
+uniform bool hasOutlineMask;
 
 uniform sampler2D faceSDF;
 uniform sampler2D eyeHighlight;
@@ -48,12 +52,22 @@ varying vec3 vViewDir;
 const vec3 LUM = vec3(0.2126, 0.7152, 0.0722);
 vec3 adjustSat(vec3 color, float sat) { return mix(vec3(dot(color, LUM)), color, sat); }
 
+vec3 overlay(vec3 base, vec3 blend) {
+    return mix(
+        2.0 * base * blend,
+        1.0 - 2.0 * (1.0 - base) * (1.0 - blend),
+        step(0.5, base)
+    );
+}
+
 float GTTonemap(float x);
 
 void main() {
     vec4 baseTex = texture2D(base, isFur ? vUv2 : vUv);
     if (distance(baseTex.rgb, vec3(0.0, 1.0, 0.0)) < greenTolerance) discard;
     vec3 diffuseColor = baseTex.rgb;
+
+    if (isOutline && hasOutlineMask && texture2D(outlineMask, vUv).r == 0.0) discard;
 
     if (isEye) {
         diffuseColor = mix(
@@ -92,7 +106,7 @@ void main() {
         vec3 right = normalize(cross(vec3(0.0, 1.0, 0.0), vNormal));
         float RdotL = dot(right.xy, lightDir.xy);
         float side = smoothstep(0.47, 0.53, RdotL * 0.5 + 0.5);
-        lightDir *= mix(faceShadowFlip.r, faceShadow.r, side) * 1.34375;
+        lightDir *= mix(faceShadowFlip.r, faceShadow.r, side) * 1.4375;
     }
 
     float NdotL = max(dot(vNormal, lightDir), 0.0);
@@ -128,11 +142,13 @@ void main() {
 
     if (isOutline) {
         vec3 colorBurn = 1.0 - (1.0 - diffuseColor) / max(diffuseColor, 0.001);
-        colorBurn = mix(vec3(1.0), colorBurn, outlineBurnIntensity);
+        colorBurn = mix(isHair ? vec3(1.0) : diffuseColor, colorBurn, outlineBurnIntensity);
 
         vec3 outlineColor = colorBurn * mix(vec3(1.0), finalLighting, outlineLightInfluence);
 
-        outlineColor = min(vec3(outlineMaxBrightness), outlineColor);
+        float brightness = max(outlineColor.r, max(outlineColor.g, outlineColor.b));
+        float maxBrightness = isHair ? outlineMaxBrightnessHair : outlineMaxBrightness;
+        if (brightness > maxBrightness) outlineColor *= maxBrightness / brightness;
 
         gl_FragColor = vec4(outlineColor, 1.0);
         return;

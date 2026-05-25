@@ -39,7 +39,7 @@ hairSaturation: { value: 1.025 },
 
 outlineBurnIntensity: { value: 0.2 },
 outlineLightInfluence: { value: 0.667 },
-outlineMaxBrightness: { value: 0.65 }
+outlineMaxBrightness: { value: 0.3 }
 ```
 </details>
 <details>
