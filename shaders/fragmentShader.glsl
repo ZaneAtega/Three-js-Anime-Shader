@@ -52,14 +52,6 @@ varying vec3 vViewDir;
 const vec3 LUM = vec3(0.2126, 0.7152, 0.0722);
 vec3 adjustSat(vec3 color, float sat) { return mix(vec3(dot(color, LUM)), color, sat); }
 
-vec3 overlay(vec3 base, vec3 blend) {
-    return mix(
-        2.0 * base * blend,
-        1.0 - 2.0 * (1.0 - base) * (1.0 - blend),
-        step(0.5, base)
-    );
-}
-
 float GTTonemap(float x);
 
 void main() {
