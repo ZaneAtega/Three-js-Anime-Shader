@@ -91,13 +91,18 @@ void main() {
     vec3 lightDir = directionalLights[0].direction;
 
     if (isFace) {
-        vec3 faceShadow = texture2D(faceSDF, vUv).rgb;
-        vec3 faceShadowFlip = texture2D(faceSDF, vec2(1.0 - vUv.x, vUv.y)).rgb;
-
         vec3 right = normalize(cross(vec3(0.0, 1.0, 0.0), vNormal));
         float RdotL = dot(right.xy, lightDir.xy);
-        float side = smoothstep(0.47, 0.53, RdotL * 0.5 + 0.5);
-        lightDir *= mix(faceShadowFlip.r, faceShadow.r, side) * 1.4375;
+
+        float faceShadow = mix(
+            texture2D(faceSDF, vec2(1.0 - vUv.x, vUv.y)).r,
+            texture2D(faceSDF, vUv).r,
+            step(0.5, RdotL * 0.5 + 0.5)
+        );
+
+        float angle = acos(RdotL) / 3.14159 * 2.0;
+        angle = mix(angle - 1.0, 1.0 - angle, step(0.0, RdotL));
+        lightDir *= step(angle, faceShadow);
     }
 
     float NdotL = max(dot(vNormal, lightDir), 0.0);
