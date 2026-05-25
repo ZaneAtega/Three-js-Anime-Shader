@@ -46,7 +46,6 @@ uniform bool isFur;
 varying vec2 vUv;
 varying vec2 vUv2;
 varying vec3 vNormal;
-varying vec3 vNormalTransformed;
 varying vec3 vViewDir;
 
 const vec3 LUM = vec3(0.2126, 0.7152, 0.0722);
