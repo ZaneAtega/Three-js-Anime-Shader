@@ -26,7 +26,8 @@ uniform float outlineMaxBrightnessHair;
 // TEXTURES
 
 uniform sampler2D base;
-uniform float greenTolerance;
+uniform float gCutoff;
+uniform float aCutoff;
 
 uniform sampler2D outlineMask;
 uniform bool hasOutlineMask;
@@ -40,6 +41,13 @@ uniform bool isFace;
 uniform bool isEye;
 uniform bool isHair;
 uniform bool isFur;
+
+uniform sampler2D wenli;
+uniform sampler2D sparkle;
+uniform sampler2D ftm;
+
+uniform bool hasWenli;
+uniform bool isDeniaChest;
 
 /* --- */
 
@@ -55,10 +63,29 @@ float GTTonemap(float x);
 
 void main() {
     vec4 baseTex = texture2D(base, isFur ? vUv2 : vUv);
-    if (distance(baseTex.rgb, vec3(0.0, 1.0, 0.0)) < greenTolerance) discard;
     vec3 diffuseColor = baseTex.rgb;
 
-    if (isOutline && hasOutlineMask && texture2D(outlineMask, vUv).r == 0.0) discard;
+    if (
+        distance(baseTex.rgb, vec3(0.0, 1.0, 0.0)) < gCutoff ||
+        baseTex.a < aCutoff ||
+        isOutline && hasOutlineMask && texture2D(outlineMask, vUv).r == 0.0
+    ) discard;
+
+    float NdotV = dot(vNormal, vViewDir);
+    float facing = 1.0 - max(NdotV, 0.0);
+
+    if (hasWenli) {
+        vec3 wenliTex = texture2D(wenli, vViewDir.xy * 4.0).rgb;
+
+        // Adapted from Jonn's Blender shader: wheresjonn.gumroad.com
+        wenliTex += vec3(0.108, 0.386, 1.0) * clamp(pow(texture2D(sparkle, vViewDir.xy * 2.0).r, 11.67) * 1.760, 0.0, 1.0);
+        if (!isDeniaChest) wenliTex += vec3(1.0, 0.0, 0.18) * clamp(pow(facing, 6.16) * 8.98, 0.0, 1.0); 
+
+        if (isDeniaChest || texture2D(ftm, vUv).g > 0.37) {
+            gl_FragColor = vec4(diffuseColor + wenliTex, 1.0);
+            return;
+        }
+    }
 
     if (isEye) {
         diffuseColor = mix(
@@ -124,9 +151,8 @@ void main() {
     vec3 specular = specularIntensity * directionalLights[0].color * F;
  
     // Rim Light
-    float rimDot = 1.0 - max(dot(vNormal, vViewDir), 0.0); // backfaces clamped to 0
     float rimThreshold = 0.2;
-    float rimIntensity = rimDot * pow(NdotL, rimThreshold);
+    float rimIntensity = facing * pow(NdotL, rimThreshold);
 
     float rimAmount = 0.6;
     rimIntensity = smoothstep(rimAmount - 0.01, rimAmount + 0.01, rimIntensity);
@@ -167,7 +193,7 @@ void main() {
     if (isHair) {
         finalColor = adjustSat(gamma, hairSaturation);
     } else if (isFur) {
-        float rim = 1.0 - abs(dot(normalize(vNormal), normalize(vViewDir))); // double-sided
+        float rim = 1.0 - abs(NdotV); // double-sided
         rim = pow(rim, 3.25);
         gl_FragColor = vec4(finalColor, texture2D(base, vUv2).r * rim);
         return;
