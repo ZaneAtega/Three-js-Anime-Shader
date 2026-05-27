@@ -42,12 +42,16 @@ uniform bool isEye;
 uniform bool isHair;
 uniform bool isFur;
 
-uniform sampler2D wenli;
+uniform sampler2D milkway;
 uniform sampler2D sparkle;
 uniform sampler2D ftm;
 
-uniform bool hasWenli;
+uniform bool hasMilkway;
+uniform bool shouldHaveRedGlow;
 uniform bool isDeniaChest;
+
+uniform sampler2D fx;
+uniform bool hasFX;
 
 /* --- */
 
@@ -74,15 +78,14 @@ void main() {
     float NdotV = dot(vNormal, vViewDir);
     float facing = 1.0 - max(NdotV, 0.0);
 
-    if (hasWenli) {
-        vec3 wenliTex = texture2D(wenli, vViewDir.xy * 4.0).rgb;
+    if (hasMilkway) {
+        vec3 milkwayTex = texture2D(milkway, vViewDir.xy * 4.0).rgb;
 
-        // Adapted from Jonn's Blender shader: wheresjonn.gumroad.com
-        wenliTex += vec3(0.108, 0.386, 1.0) * clamp(pow(texture2D(sparkle, vViewDir.xy * 2.0).r, 11.67) * 1.76, 0.0, 1.0);
-        if (!isDeniaChest) wenliTex += vec3(1.0, 0.0, 0.18) * clamp(pow(facing, 6.16 / 3.0) * 8.98 / 11.0, 0.0, 1.0); 
+        milkwayTex += vec3(0.108, 0.386, 1.0) * texture2D(sparkle, vViewDir.xy * 4.0).r;
+        if (shouldHaveRedGlow) milkwayTex += vec3(1.0, 0.0, 0.18) * clamp(pow(facing, 6.16 / 3.0) * 8.98 / 11.0, 0.0, 1.0);
 
         if (isDeniaChest || texture2D(ftm, vUv).g > 0.37) {
-            gl_FragColor = vec4(diffuseColor + wenliTex, 1.0);
+            gl_FragColor = vec4(diffuseColor + milkwayTex, 1.0);
             return;
         }
     }
@@ -198,6 +201,8 @@ void main() {
         gl_FragColor = vec4(finalColor, texture2D(base, vUv2).r * rim);
         return;
     }
+
+    if (hasFX) finalColor += texture2D(fx, vUv * 8.0).rgb * texture2D(fx, vUv).a;
 
     gl_FragColor = vec4(finalColor, 1.0);
 }

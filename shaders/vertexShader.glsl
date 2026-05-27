@@ -50,12 +50,12 @@ void main() {
 	vUv = uv;
 	vUv2 = uv2;
 
+	vNormal = normalize(normalMatrix * objectNormal);
+
 	vec4 modelPosition = modelMatrix * vec4(transformed, 1.0);
 	vec4 viewPosition = viewMatrix * modelPosition;
-	vec4 clipPosition = projectionMatrix * viewPosition;
-
-	vNormal = normalize(normalMatrix * objectNormal);
 	vViewDir = normalize(-viewPosition.xyz);
 
+	vec4 clipPosition = projectionMatrix * viewPosition;
 	gl_Position = clipPosition;
 }
