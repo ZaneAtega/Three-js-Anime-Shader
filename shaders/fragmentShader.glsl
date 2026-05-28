@@ -210,7 +210,7 @@ void main() {
 
     if (hasFX) {
         float stars = texture2D(fx, vUv * 4.0).r * texture2D(fx, vUv).a;
-        if (useSparkle) finalColor += texture2D(sparkle, vViewDir.xy * vViewPos.z / 8.0).r * step(0.03, stars);
+        if (useSparkle) finalColor += texture2D(sparkle, vViewDir.xy * abs(vViewPos.z) / 8.0).r * step(0.03, stars);
         else finalColor += stars;
     }
 
