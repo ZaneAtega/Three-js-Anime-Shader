@@ -209,14 +209,7 @@ void main() {
     }
 
     if (hasFX) {
-        float stars = texture2D(fx, vUv * 4.0).r;
-
-        float strength = clamp(pow(stars, 2.47), 0.0, 1.0);
-        strength = clamp(strength * 4.1, 0.0, 1.0);
-        strength += 3.14;
-
-        stars *= strength * texture2D(fx, vUv).a;
-
+        float stars = texture2D(fx, vUv * 4.0).r * texture2D(fx, vUv).a;
         if (useSparkle) finalColor += texture2D(sparkle, vViewDir.xy * vViewPos.z / 8.0).r * step(0.03, stars);
         else finalColor += stars;
     }
