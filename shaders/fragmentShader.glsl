@@ -13,51 +13,64 @@ uniform vec3 shadowTint;
 uniform float tintStrength;
 
 uniform float glossiness;
+
+uniform float rimThreshold;
+uniform float rimAmount;
+
 uniform float counterExposure;
+uniform float gamma;
+
 uniform float saturation;
 uniform float hairSaturation;
 
-uniform bool isOutline;
 uniform float outlineBurnIntensity;
 uniform float outlineLightInfluence;
 uniform float outlineMaxBrightness;
 uniform float outlineMaxBrightnessHair;
+uniform bool isOutline;
 
 // TEXTURES
 
 uniform sampler2D base;
 uniform float gCutoff;
 uniform float aCutoff;
+uniform bool isFur;
 
 uniform sampler2D outlineMask;
 uniform bool hasOutlineMask;
 
 uniform sampler2D faceSDF;
+uniform bool isFace;
+
 uniform sampler2D eyeHighlight;
 uniform sampler2D eyeBottomHighlight;
-uniform sampler2D hairHM;
-
-uniform bool isFace;
 uniform bool isEye;
+
+uniform sampler2D hairHM;
 uniform bool isHair;
-uniform bool isFur;
-
-uniform sampler2D milkway;
-uniform sampler2D sparkle;
-uniform sampler2D ftm;
-
-uniform bool hasMilkway;
-uniform bool shouldHaveRedGlow;
-uniform bool isDeniaChest;
 
 uniform sampler2D fx;
 uniform bool hasFX;
+uniform bool useSparkle;
+
+// Denia
+
+uniform sampler2D milkway;
+uniform sampler2D sparkle;
+
+uniform bool hasMilkway;
+uniform bool shouldGlowRed;
+uniform bool isDeniaChest;
+
+uniform sampler2D ftm;
+uniform float ftmMinG;
 
 /* --- */
 
 varying vec2 vUv;
 varying vec2 vUv2;
 varying vec3 vNormal;
+varying vec4 vViewPos;
 varying vec3 vViewDir;
 
 const vec3 LUM = vec3(0.2126, 0.7152, 0.0722);
@@ -82,9 +95,9 @@ void main() {
         vec3 milkwayTex = texture2D(milkway, vViewDir.xy * 4.0).rgb;
 
         milkwayTex += vec3(0.108, 0.386, 1.0) * texture2D(sparkle, vViewDir.xy * 4.0).r;
-        if (shouldHaveRedGlow) milkwayTex += vec3(1.0, 0.0, 0.18) * clamp(pow(facing, 6.16 / 3.0) * 8.98 / 11.0, 0.0, 1.0);
+        if (shouldGlowRed) milkwayTex += vec3(1.0, 0.0, 0.18) * clamp(pow(facing, 6.16 / 3.0) * 8.98 / 11.0, 0.0, 1.0);
 
-        if (isDeniaChest || texture2D(ftm, vUv).g > 0.37) {
+        if (isDeniaChest || texture2D(ftm, vUv).g > ftmMinG) {
             gl_FragColor = vec4(diffuseColor + milkwayTex, 1.0);
             return;
         }
@@ -154,12 +167,8 @@ void main() {
     vec3 specular = specularIntensity * directionalLights[0].color * F;
  
     // Rim Light
-    float rimThreshold = 0.2;
     float rimIntensity = facing * pow(NdotL, rimThreshold);
-
-    float rimAmount = 0.6;
     rimIntensity = smoothstep(rimAmount - 0.01, rimAmount + 0.01, rimIntensity);
-
     vec3 rim = rimIntensity * directionalLights[0].color * rimTint;
 
     // Final Lighting
@@ -168,7 +177,6 @@ void main() {
     if (isOutline) {
         vec3 colorBurn = 1.0 - (1.0 - diffuseColor) / max(diffuseColor, 0.001);
         colorBurn = mix(isHair ? vec3(1.0) : diffuseColor, colorBurn, outlineBurnIntensity);
-
         vec3 outlineColor = colorBurn * mix(vec3(1.0), finalLighting, outlineLightInfluence);
 
         float brightness = max(outlineColor.r, max(outlineColor.g, outlineColor.b));
@@ -189,12 +197,10 @@ void main() {
 
     vec3 GT = vec3(GTTonemap(correctExposure.r), GTTonemap(correctExposure.g), GTTonemap(correctExposure.b));
     vec3 adjustedSat = adjustSat(GT, saturation);
-    vec3 gamma = pow(adjustedSat, vec3(1.0 / 2.0875)); // Compensating for SMAA/SSAA
-
-    vec3 finalColor = gamma;
+    vec3 finalColor = pow(adjustedSat, vec3(1.0 / gamma)); // Compensating for SMAA/SSAA
 
     if (isHair) {
-        finalColor = adjustSat(gamma, hairSaturation);
+        finalColor = adjustSat(finalColor, hairSaturation);
     } else if (isFur) {
         float rim = 1.0 - abs(NdotV); // double-sided
         rim = pow(rim, 3.25);
@@ -202,7 +208,18 @@ void main() {
         return;
     }
 
-    if (hasFX) finalColor += texture2D(fx, vUv * 8.0).rgb * texture2D(fx, vUv).a;
+    if (hasFX) {
+        float stars = texture2D(fx, vUv * 4.0).r;
+
+        float strength = clamp(pow(stars, 2.47), 0.0, 1.0);
+        strength = clamp(strength * 4.1, 0.0, 1.0);
+        strength += 3.14;
+
+        stars *= strength * texture2D(fx, vUv).a;
+
+        if (useSparkle) finalColor += texture2D(sparkle, vViewDir.xy * vViewPos.z / 8.0).r * step(0.03, stars);
+        else finalColor += stars;
+    }
 
     gl_FragColor = vec4(finalColor, 1.0);
 }

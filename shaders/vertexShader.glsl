@@ -19,6 +19,7 @@ vec3 getMorph2(const in int vertexIndex, const in int morphTargetIndex, const in
 varying vec2 vUv;
 varying vec2 vUv2;
 varying vec3 vNormal;
+varying vec4 vViewPos;
 varying vec3 vViewDir;
 
 uniform bool isOutline;
@@ -53,9 +54,9 @@ void main() {
 	vNormal = normalize(normalMatrix * objectNormal);
 
 	vec4 modelPosition = modelMatrix * vec4(transformed, 1.0);
-	vec4 viewPosition = viewMatrix * modelPosition;
-	vViewDir = normalize(-viewPosition.xyz);
+	vViewPos = viewMatrix * modelPosition;
+	vViewDir = normalize(-vViewPos.xyz);
 
-	vec4 clipPosition = projectionMatrix * viewPosition;
+	vec4 clipPosition = projectionMatrix * vViewPos;
 	gl_Position = clipPosition;
 }
