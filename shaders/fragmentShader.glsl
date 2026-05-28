@@ -49,10 +49,6 @@ uniform bool isEye;
 uniform sampler2D hairHM;
 uniform bool isHair;
 
-uniform sampler2D fx;
-uniform bool hasFX;
-uniform bool useSparkle;
-
 // Denia
 
 uniform sampler2D milkway;
@@ -64,6 +60,10 @@ uniform bool isDeniaChest;
 
 uniform sampler2D ftm;
 uniform float ftmMinG;
+
+uniform sampler2D fx;
+uniform bool hasFX;
+uniform bool useSparkle;
 
 /* --- */
 
@@ -153,17 +153,14 @@ void main() {
 
     vec3 directionalLight = directionalLights[0].color * lightIntensity * lightTint;
 
-    // Specular
+    // Specular (Blinn-Phong)
     vec3 halfVector = normalize(lightDir + vViewDir);
     float NdotH = max(dot(vNormal, halfVector), 0.0);
-
-    float specularIntensity = pow(NdotH, 1000.0 / glossiness); // Blinn-Phong
-    specularIntensity *= lightIntensity;
+    float specularIntensity = pow(NdotH, 1000.0 / glossiness) * lightIntensity;
 
     // Fresnel
     vec3 F0 = vec3(0.04);
     vec3 F = F0 + (1.0 - F0) * pow(1.0 - dot(halfVector, vViewDir), 5.0);
-
     vec3 specular = specularIntensity * directionalLights[0].color * F;
  
     // Rim Light
