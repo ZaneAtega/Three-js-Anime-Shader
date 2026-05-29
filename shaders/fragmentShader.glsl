@@ -44,6 +44,7 @@ uniform sampler2D metallicMatCap;
 uniform bool hasFTM;
 
 uniform sampler2D faceSDF;
+uniform sampler2D het;
 uniform bool isFace;
 
 uniform sampler2D eyeHighlight;
@@ -87,6 +88,8 @@ vec3 rotateY(vec3 v, float deg);
 float GTTonemap(float x);
 
 void main() {
+    gl_FragDepth = gl_FragCoord.z - (isFace && texture2D(het, vUv).r > 0.5 ? 0.2 : 0.0);
+
     vec4 baseTex = texture2D(base, isFur ? vUv2 : vUv);
     vec3 diffuseColor = baseTex.rgb;
 
