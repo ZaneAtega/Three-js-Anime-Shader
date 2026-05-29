@@ -39,6 +39,10 @@ uniform bool isFur;
 uniform sampler2D outlineMask;
 uniform bool hasOutlineMask;
 
+uniform sampler2D ftm;
+uniform sampler2D metallicMatCap;
+uniform bool hasFTM;
+
 uniform sampler2D faceSDF;
 uniform bool isFace;
 
@@ -58,8 +62,9 @@ uniform bool hasMilkway;
 uniform bool shouldGlowRed;
 uniform bool isDeniaChest;
 
-uniform sampler2D ftm;
-uniform float ftmMinG;
+uniform sampler2D milkwayMask;
+uniform bool hasMilkwayMask;
+uniform float milkwayMinG;
 
 uniform sampler2D fx;
 uniform bool hasFX;
@@ -75,6 +80,9 @@ varying vec3 vViewDir;
 
 const vec3 LUM = vec3(0.2126, 0.7152, 0.0722);
 vec3 adjustSat(vec3 color, float sat) { return mix(vec3(dot(color, LUM)), color, sat); }
+
+float deg2rad(float deg) { return deg * 3.14159 / 180.0; }
+vec3 rotateY(vec3 v, float deg);
 
 float GTTonemap(float x);
 
@@ -97,7 +105,7 @@ void main() {
         milkwayTex += vec3(0.108, 0.386, 1.0) * texture2D(sparkle, vViewDir.xy * 4.0).r;
         if (shouldGlowRed) milkwayTex += vec3(1.0, 0.0, 0.18) * clamp(pow(facing, 6.16 / 3.0) * 8.98 / 11.0, 0.0, 1.0);
 
-        if (isDeniaChest || texture2D(ftm, vUv).g > ftmMinG) {
+        if (isDeniaChest || (hasMilkwayMask ? texture2D(milkwayMask, vUv).g : texture2D(ftm, vUv).g) > milkwayMinG) {
             gl_FragColor = vec4(diffuseColor + milkwayTex, 1.0);
             return;
         }
@@ -152,6 +160,21 @@ void main() {
     float lightIntensity = NdotL; // * shadow;
 
     vec3 directionalLight = directionalLights[0].color * lightIntensity * lightTint;
+
+    // Metallic
+    if (hasFTM) {
+        vec3 viewReflect = reflect(-rotateY(vViewDir, 90.0), vNormal);
+        vec3 lightReflect = reflect(-rotateY(lightDir, 90.0), vNormal);
+
+        vec2 metallicUV = normalize(viewReflect + lightReflect * NdotL).xy;
+        metallicUV = metallicUV * 0.5 + 0.5;
+
+        float metallic = adjustSat(texture2D(metallicMatCap, metallicUV).rgb, 0.0).r;
+        float metallicMask = step(0.667, texture2D(ftm, vUv).g);
+
+        diffuseColor = mix(diffuseColor, diffuseColor * metallic, metallicMask);
+        diffuseColor *= 1.0 + metallicMask;
+    }
 
     // Specular (Blinn-Phong)
     vec3 halfVector = normalize(lightDir + vViewDir);
@@ -212,6 +235,18 @@ void main() {
     }
 
     gl_FragColor = vec4(finalColor, 1.0);
+}
+
+vec3 rotateY(vec3 v, float deg) {
+    float a = deg2rad(deg);
+    float s = sin(a);
+    float c = cos(a);
+
+    return vec3(
+        c * v.x + s * v.z,
+        v.y,
+        -s * v.x + c * v.z
+    );
 }
 
 // GT Tonemap
