@@ -12,13 +12,13 @@ uniform vec3 ambientTint;
 uniform vec3 shadowTint;
 uniform float tintStrength;
 
-uniform float glossiness;
+uniform float specularExp;
 
 uniform float rimThreshold;
 uniform float rimAmount;
 
 uniform float counterExposure;
-uniform float gamma;
+uniform float invGamma;
 
 uniform float saturation;
 uniform float hairSaturation;
@@ -82,20 +82,20 @@ varying vec3 vViewDir;
 const vec3 LUM = vec3(0.2126, 0.7152, 0.0722);
 vec3 adjustSat(vec3 color, float sat) { return mix(vec3(dot(color, LUM)), color, sat); }
 
-float deg2rad(float deg) { return deg * 3.14159 / 180.0; }
+float deg2rad(float deg) { return deg * 0.01745; } // PI / 180.0
 vec3 rotateY(vec3 v, float deg);
 
 float GTTonemap(float x);
 
 void main() {
-    gl_FragDepth = gl_FragCoord.z - (isFace && texture2D(het, vUv).r > 0.5 ? 0.2 : 0.0);
+    gl_FragDepth = gl_FragCoord.z - float(isFace && texture2D(het, vUv).r > 0.5) * 0.2;
 
     vec4 baseTex = texture2D(base, isFur ? vUv2 : vUv);
     vec3 diffuseColor = baseTex.rgb;
 
     if (
-        distance(baseTex.rgb, vec3(0.0, 1.0, 0.0)) < gCutoff ||
         baseTex.a < aCutoff ||
+        distance(baseTex.rgb, vec3(0.0, 1.0, 0.0)) < gCutoff ||
         isOutline && hasOutlineMask && texture2D(outlineMask, vUv).r == 0.0
     ) discard;
 
@@ -106,7 +106,8 @@ void main() {
         vec3 milkwayTex = texture2D(milkway, vViewDir.xy * 4.0).rgb;
 
         milkwayTex += vec3(0.108, 0.386, 1.0) * texture2D(sparkle, vViewDir.xy * 4.0).r;
-        if (shouldGlowRed) milkwayTex += vec3(1.0, 0.0, 0.18) * clamp(pow(facing, 6.16 / 3.0) * 8.98 / 11.0, 0.0, 1.0);
+
+        if (shouldGlowRed) milkwayTex += vec3(1.0, 0.0, 0.18) * clamp(pow(facing, 2.05333) * 0.81636, 0.0, 1.0);
 
         if (isDeniaChest || (hasMilkwayMask ? texture2D(milkwayMask, vUv).g : texture2D(ftm, vUv).g) > milkwayMinG) {
             gl_FragColor = vec4(diffuseColor + milkwayTex, 1.0);
@@ -154,7 +155,7 @@ void main() {
             step(0.5, RdotL * 0.5 + 0.5)
         );
 
-        float angle = acos(RdotL) / 3.14159 * 2.0;
+        float angle = acos(RdotL) / PI * 2.0;
         angle = mix(angle - 1.0, 1.0 - angle, step(0.0, RdotL));
         lightDir *= step(angle, faceShadow);
     }
@@ -182,7 +183,7 @@ void main() {
     // Specular (Blinn-Phong)
     vec3 halfVector = normalize(lightDir + vViewDir);
     float NdotH = max(dot(vNormal, halfVector), 0.0);
-    float specularIntensity = pow(NdotH, 1000.0 / glossiness) * lightIntensity;
+    float specularIntensity = pow(NdotH, specularExp) * lightIntensity;
 
     // Fresnel
     vec3 F0 = vec3(0.04);
@@ -204,7 +205,7 @@ void main() {
 
         float brightness = max(outlineColor.r, max(outlineColor.g, outlineColor.b));
         float maxBrightness = isHair ? outlineMaxBrightnessHair : outlineMaxBrightness;
-        if (brightness > maxBrightness) outlineColor *= maxBrightness / brightness;
+        outlineColor *= min(1.0, maxBrightness / max(brightness, 0.001));
 
         gl_FragColor = vec4(outlineColor, 1.0);
         return;
@@ -220,7 +221,7 @@ void main() {
 
     vec3 GT = vec3(GTTonemap(correctExposure.r), GTTonemap(correctExposure.g), GTTonemap(correctExposure.b));
     vec3 adjustedSat = adjustSat(GT, saturation);
-    vec3 finalColor = pow(adjustedSat, vec3(1.0 / gamma)); // Compensating for SMAA/SSAA
+    vec3 finalColor = pow(adjustedSat, vec3(invGamma)); // Compensating for SMAA/SSAA
 
     if (isHair) {
         finalColor = adjustSat(finalColor, hairSaturation);
@@ -233,7 +234,7 @@ void main() {
 
     if (hasFX) {
         float stars = texture2D(fx, vUv * 4.0).r * texture2D(fx, vUv).a;
-        if (useSparkle) finalColor += texture2D(sparkle, vViewDir.xy * abs(vViewPos.z) / 8.0).r * step(0.03, stars);
+        if (useSparkle) finalColor += texture2D(sparkle, vViewDir.xy * abs(vViewPos.z) * 0.125).r * step(0.03, stars);
         else finalColor += stars;
     }
 
@@ -261,16 +262,20 @@ const float a = 1.0;
 const float c = 1.33;
 const float b = 0.0;
 
+const float invP = 1.0;
+const float invM = 4.54545;
+
+const float l0 = 0.312; // (P - m) * l / a;
+const float S1 = 0.532; // m + a * l0;
+const float C2 = 2.13675; // a * P / (P - S1);
+const float S0 = 0.532; // m + l0;
+
 float GTTonemap(float x) {
-    float l0 = (P - m) * l / a;
-    float S1 = m + a * l0;
-    float C2 = a * P / (P - S1);
-    float S0 = m + l0;
-    float S_x = P - (P - S1) * exp(-C2 * (x - S0) / P);
+    float S_x = P - (P - S1) * exp(-C2 * (x - S0) * invP);
     float L_x = m + a * (x - m);
-    float w2_x = (x < m + l) ? 0.0 : 1.0;
+    float w2_x = step(m + l, x);
     float w0_x = 1.0 - smoothstep(0.0, m, x);
     float w1_x = 1.0 - w0_x - w2_x;
-    float T_x = m * pow(x / m, c) + b;
+    float T_x = m * pow(x * invM, c) + b;
     return T_x * w0_x + L_x * w1_x + S_x * w2_x;
 }
