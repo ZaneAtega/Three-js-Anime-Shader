@@ -41,7 +41,7 @@ rimAmount: { value: 0.6 },
 
 // Compensating for SMAA/SSAA post-processing, which makes it look overexposed
 counterExposure: { value: 0.35 }, 
-invGamma: { 1.0 / 2.0875 },
+invGamma: { value: 1.0 / 2.0875 },
 
 saturation: { value: 1.05 },
 hairSaturation: { value: 1.025 },
