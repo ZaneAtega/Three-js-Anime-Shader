@@ -82,9 +82,6 @@ varying vec3 vViewDir;
 const vec3 LUM = vec3(0.2126, 0.7152, 0.0722);
 vec3 adjustSat(vec3 color, float sat) { return mix(vec3(dot(color, LUM)), color, sat); }
 
-float deg2rad(float deg) { return deg * 0.01745; } // PI / 180.0
-vec3 rotateY(vec3 v, float deg);
-
 float GTTonemap(float x);
 
 void main() {
@@ -167,8 +164,8 @@ void main() {
 
     // Metallic
     if (hasFTM) {
-        vec3 viewReflect = reflect(-rotateY(vViewDir, 90.0), vNormal);
-        vec3 lightReflect = reflect(-rotateY(lightDir, 90.0), vNormal);
+        vec3 viewReflect = reflect(-vec3(vViewDir.z, vViewDir.y, -vViewDir.x), vNormal); // Rotate 90 about Y
+        vec3 lightReflect = reflect(-vec3(lightDir.z, lightDir.y, -lightDir.x), vNormal);
 
         vec2 metallicUV = normalize(viewReflect + lightReflect * NdotL).xy;
         metallicUV = metallicUV * 0.5 + 0.5;
@@ -239,18 +236,6 @@ void main() {
     }
 
     gl_FragColor = vec4(finalColor, 1.0);
-}
-
-vec3 rotateY(vec3 v, float deg) {
-    float a = deg2rad(deg);
-    float s = sin(a);
-    float c = cos(a);
-
-    return vec3(
-        c * v.x + s * v.z,
-        v.y,
-        -s * v.x + c * v.z
-    );
 }
 
 // GT Tonemap
