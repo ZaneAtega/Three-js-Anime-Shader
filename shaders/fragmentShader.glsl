@@ -32,8 +32,8 @@ uniform bool isOutline;
 // TEXTURES
 
 uniform sampler2D base;
-uniform float gCutoff;
 uniform float aCutoff;
+uniform float gCutoff;
 uniform bool isFur;
 
 uniform sampler2D outlineMask;
@@ -92,7 +92,7 @@ void main() {
 
     if (
         baseTex.a < aCutoff ||
-        distance(baseTex.rgb, vec3(0.0, 1.0, 0.0)) < gCutoff ||
+        gCutoff > 0.0 && distance(baseTex.rgb, vec3(0.0, 1.0, 0.0)) < gCutoff ||
         isOutline && hasOutlineMask && texture2D(outlineMask, vUv).r == 0.0
     ) discard;
 
