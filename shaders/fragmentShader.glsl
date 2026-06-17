@@ -88,7 +88,7 @@ void main() {
     gl_FragDepth = gl_FragCoord.z - float(isFace && texture2D(het, vUv).r > 0.5) * 0.2;
 
     vec4 baseTex = texture2D(base, isFur ? vUv2 : vUv);
-    vec3 diffuseColor = baseTex.rgb;
+    vec3 baseColor = baseTex.rgb;
 
     if (
         baseTex.a < aCutoff ||
@@ -107,14 +107,14 @@ void main() {
         if (shouldGlowRed) milkwayTex += vec3(1.0, 0.0, 0.18) * clamp(pow(facing, 2.05333) * 0.81636, 0.0, 1.0);
 
         if (isDeniaChest || (hasMilkwayMask ? texture2D(milkwayMask, vUv).g : texture2D(ftm, vUv).g) > milkwayMinG) {
-            gl_FragColor = vec4(diffuseColor + milkwayTex, 1.0);
+            gl_FragColor = vec4(baseColor + milkwayTex, 1.0);
             return;
         }
     }
 
     if (isEye) {
-        diffuseColor = mix(
-            mix(diffuseColor, vec3(1.0), texture2D(eyeHighlight, vUv).r),
+        baseColor = mix(
+            mix(baseColor, vec3(1.0), texture2D(eyeHighlight, vUv).r),
             vec3(1.0),
             texture2D(eyeBottomHighlight, vUv).r
         );
@@ -173,8 +173,8 @@ void main() {
         float metallic = adjustSat(texture2D(metallicMatCap, metallicUV).rgb, 0.0).r;
         float metallicMask = step(0.667, texture2D(ftm, vUv).g);
 
-        diffuseColor = mix(diffuseColor, diffuseColor * metallic, metallicMask);
-        diffuseColor *= 1.0 + metallicMask;
+        baseColor = mix(baseColor, baseColor * metallic, metallicMask);
+        baseColor *= 1.0 + metallicMask;
     }
 
     // Specular (Blinn-Phong)
@@ -196,8 +196,8 @@ void main() {
     vec3 finalLighting = directionalLight + specular + rim;
 
     if (isOutline) {
-        vec3 colorBurn = 1.0 - (1.0 - diffuseColor) / max(diffuseColor, 0.001);
-        colorBurn = mix(isHair ? vec3(1.0) : diffuseColor, colorBurn, outlineBurnIntensity);
+        vec3 colorBurn = 1.0 - (1.0 - baseColor) / max(baseColor, 0.001);
+        colorBurn = mix(isHair ? vec3(1.0) : baseColor, colorBurn, outlineBurnIntensity);
         vec3 outlineColor = colorBurn * mix(vec3(1.0), finalLighting, outlineLightInfluence);
 
         float brightness = max(outlineColor.r, max(outlineColor.g, outlineColor.b));
@@ -208,7 +208,7 @@ void main() {
         return;
     }
 
-    vec3 litColor = diffuseColor * (ambientLightColor * ambientTint + finalLighting);
+    vec3 litColor = baseColor * (ambientLightColor * ambientTint + finalLighting);
     vec3 withShadowTint = litColor * mix(vec3(1.0), shadowTint, 1.0 - lightIntensity);
 
     // Color Grading

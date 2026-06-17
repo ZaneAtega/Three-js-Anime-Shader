@@ -32,8 +32,6 @@ void main() {
 		if (morphTargetInfluences[i] > 0.0) objectNormal += getMorph2(gl_VertexID, i, 1) * morphTargetInfluences[i];
 	}
 
-	#include <defaultnormal_vertex>
-
 	#include <begin_vertex>
 	if (isOutline) transformed = vec3(position + normal * outlineThickness);
 
@@ -45,7 +43,6 @@ void main() {
 	#include <skinnormal_vertex>
 	#include <skinning_vertex>
 
-	#include <worldpos_vertex>
 	// #include <shadowmap_vertex>
 
 	vUv = uv;
@@ -57,6 +54,5 @@ void main() {
 	vViewPos = viewMatrix * modelPosition;
 	vViewDir = normalize(-vViewPos.xyz);
 
-	vec4 clipPosition = projectionMatrix * vViewPos;
-	gl_Position = clipPosition;
+	gl_Position = projectionMatrix * vViewPos;
 }
