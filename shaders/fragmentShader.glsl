@@ -264,12 +264,12 @@ void main() {
 
 // GT Tonemap
 
-const float P = 1.0;
-const float m = 0.22;
-const float l = 0.40;
-const float a = 1.0;
-const float c = 1.33;
-const float b = 0.0;
+const float P = 1.0; // max brightness
+const float a = 1.0; // contrast
+const float m = 0.22; // linear section start
+const float l = 0.40; // linear section length
+const float c = 1.33; // black tightness
+const float b = 0.0; // pedestal
 
 const float invP = 1.0;
 const float invM = 4.54545;
