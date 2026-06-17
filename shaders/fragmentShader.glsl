@@ -36,6 +36,9 @@ uniform float aCutoff;
 uniform float gCutoff;
 uniform bool isFur;
 
+uniform sampler2D normalMap;
+uniform bool hasNormalMap;
+
 uniform sampler2D outlineMask;
 uniform bool hasOutlineMask;
 
@@ -75,9 +78,13 @@ uniform bool useSparkle;
 
 varying vec2 vUv;
 varying vec2 vUv2;
-varying vec3 vNormal;
+
 varying vec4 vViewPos;
 varying vec3 vViewDir;
+
+varying vec3 vNormal;
+varying vec3 vTangent;
+varying vec3 vBitangent;
 
 const vec3 LUM = vec3(0.2126, 0.7152, 0.0722);
 vec3 adjustSat(vec3 color, float sat) { return mix(vec3(dot(color, LUM)), color, sat); }
@@ -96,7 +103,9 @@ void main() {
         isOutline && hasOutlineMask && texture2D(outlineMask, vUv).r == 0.0
     ) discard;
 
-    float NdotV = dot(vNormal, vViewDir);
+    vec3 normal = vNormal;
+
+    float NdotV = dot(normal, vViewDir);
     float facing = 1.0 - max(NdotV, 0.0);
 
     if (hasMilkway) {
@@ -111,6 +120,21 @@ void main() {
             return;
         }
     }
+
+    // This is correct but UV seams are visible :(
+    /*
+    if (hasNormalMap) {
+        vec3 tangentNormal = vec3(texture2D(normalMap, vUv).rg * 2.0 - 1.0, 0.0);
+        tangentNormal.z = sqrt(1.0 - dot(tangentNormal.xy, tangentNormal.xy));
+
+        mat3 tbn = mat3(vTangent, vBitangent, normal);
+
+        normal = normalize(tbn * tangentNormal);
+
+        NdotV = dot(normal, vViewDir);
+        facing = 1.0 - max(NdotV, 0.0);
+    }
+    */
 
     if (isEye) {
         baseColor = mix(
@@ -143,7 +167,7 @@ void main() {
     vec3 lightDir = directionalLights[0].direction;
 
     if (isFace) {
-        vec3 right = normalize(cross(vec3(0.0, 1.0, 0.0), vNormal));
+        vec3 right = normalize(cross(vec3(0.0, 1.0, 0.0), normal));
         float RdotL = dot(right.xy, lightDir.xy);
 
         float faceShadow = mix(
@@ -157,15 +181,15 @@ void main() {
         lightDir *= step(angle, faceShadow);
     }
 
-    float NdotL = max(dot(vNormal, lightDir), 0.0);
+    float NdotL = max(dot(normal, lightDir), 0.0);
     float lightIntensity = NdotL; // * shadow;
 
     vec3 directionalLight = directionalLights[0].color * lightIntensity * lightTint;
 
     // Metallic
     if (hasFTM) {
-        vec3 viewReflect = reflect(-vec3(vViewDir.z, vViewDir.y, -vViewDir.x), vNormal); // Rotate 90 about Y
-        vec3 lightReflect = reflect(-vec3(lightDir.z, lightDir.y, -lightDir.x), vNormal);
+        vec3 viewReflect = reflect(-vec3(vViewDir.z, vViewDir.y, -vViewDir.x), normal); // Rotate 90 about Y
+        vec3 lightReflect = reflect(-vec3(lightDir.z, lightDir.y, -lightDir.x), normal);
 
         vec2 metallicUV = normalize(viewReflect + lightReflect * NdotL).xy;
         metallicUV = metallicUV * 0.5 + 0.5;
@@ -179,7 +203,7 @@ void main() {
 
     // Specular (Blinn-Phong)
     vec3 halfVector = normalize(lightDir + vViewDir);
-    float NdotH = max(dot(vNormal, halfVector), 0.0);
+    float NdotH = max(dot(normal, halfVector), 0.0);
     float specularIntensity = pow(NdotH, specularExp) * lightIntensity;
 
     // Fresnel

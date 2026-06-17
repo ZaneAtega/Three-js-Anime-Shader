@@ -16,11 +16,17 @@ vec3 getMorph2(const in int vertexIndex, const in int morphTargetIndex, const in
 	return texelFetch(morphTargetsTexture, morphUV, 0).xyz;
 }
 
+attribute vec4 tangent;
+
 varying vec2 vUv;
 varying vec2 vUv2;
-varying vec3 vNormal;
+
 varying vec4 vViewPos;
 varying vec3 vViewDir;
+
+varying vec3 vNormal;
+varying vec3 vTangent;
+varying vec3 vBitangent;
 
 uniform bool isOutline;
 uniform float outlineThickness;
@@ -48,11 +54,13 @@ void main() {
 	vUv = uv;
 	vUv2 = uv2;
 
-	vNormal = normalize(normalMatrix * objectNormal);
-
 	vec4 modelPosition = modelMatrix * vec4(transformed, 1.0);
 	vViewPos = viewMatrix * modelPosition;
 	vViewDir = normalize(-vViewPos.xyz);
+
+	vNormal = normalize(normalMatrix * objectNormal);
+	vTangent = normalize(normalMatrix * tangent.xyz);
+	vBitangent = normalize(cross(vNormal, vTangent) * tangent.w);
 
 	gl_Position = projectionMatrix * vViewPos;
 }
