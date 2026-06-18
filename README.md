@@ -18,17 +18,18 @@ material.depthWrite = false;
 ```
 </details>
 
-Three.js r152:
-
 <details>
-<summary>Renderer</summary>
+<summary>Three.js r152</summary>
 
 ```js
-antialias = true;
-physicallyCorrectLights = true;
-toneMapping = THREE.ACESFilmicToneMapping;
-toneMappingExposure = 0.3; // Compensating for SMAA/SSAA post-processing, which makes it look overexposed
+WebGLRenderer.antialias = true;
+WebGLRenderer.physicallyCorrectLights = true;
+
+DirectionalLight.intensity = 0.4;
 ```
+UnrealBloomPass 0.325, 0.95, 0.4<br>
+SMAAPass
+
 </details>
 <details>
 <summary>Uniforms</summary>
@@ -40,22 +41,13 @@ rimThreshold: { value: 0.2 },
 rimAmount: { value: 0.6 },
 
 // Compensating for SMAA/SSAA post-processing, which makes it look overexposed
-counterExposure: { value: 0.35 }, 
-invGamma: { value: 1.0 / 2.0875 },
-
-saturation: { value: 1.05 },
-hairSaturation: { value: 1.025 },
+exposure: { value: 0.5 }, 
+invGamma: { value: 1.0 / 1.55 },
 
 outlineBurnIntensity: { value: 0.2 },
 outlineLightInfluence: { value: 0.667 },
 outlineMaxBrightness: { value: 0.3 }
 ```
-</details>
-<details>
-<summary>Miscellaneous</summary>
-DirectionalLight.intensity = 0.5;<br>
-UnrealBloomPass 0.25, 0.875, 0.425<br>
-SMAAPass
 </details>
 
 ## License

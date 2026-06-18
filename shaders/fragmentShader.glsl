@@ -17,7 +17,7 @@ uniform float specularExp;
 uniform float rimThreshold;
 uniform float rimAmount;
 
-uniform float counterExposure;
+uniform float exposure;
 uniform float invGamma;
 
 uniform float saturation;
@@ -236,13 +236,13 @@ void main() {
     vec3 withShadowTint = litColor * mix(vec3(1.0), shadowTint, 1.0 - lightIntensity);
 
     // Color Grading
-    vec3 correctExposure = withShadowTint * counterExposure; // Compensating for SMAA/SSAA post-processing, which makes it look overexposed
+    vec3 correctExposure = withShadowTint * exposure; // Compensating for SMAA/SSAA post-processing, which makes it look overexposed
 
     if (isHair) correctExposure += directionalLight * texture2D(hairHM, vUv).r * 0.075; // Hair Highlights
 
     vec3 GT = vec3(GTTonemap(correctExposure.r), GTTonemap(correctExposure.g), GTTonemap(correctExposure.b));
-    vec3 adjustedSat = adjustSat(GT, saturation);
-    vec3 finalColor = pow(adjustedSat, vec3(invGamma)); // Compensating for SMAA/SSAA
+    vec3 correctGamma = pow(GT, vec3(invGamma)); // Compensating for SMAA/SSAA
+    vec3 finalColor = adjustSat(correctGamma, saturation);
 
     if (isHair) {
         finalColor = adjustSat(finalColor, hairSaturation);
