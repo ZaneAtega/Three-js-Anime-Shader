@@ -146,11 +146,14 @@ void main() {
     vec3 ambientTint = adjustSat(ambientTint, tintStrength);
     vec3 shadowTint = adjustSat(shadowTint, tintStrength);
 
-    // Shadow Map from Mayacoda's toon shader - Uncomment if DirectionalLight.castShadow = true
+    // Shadows
+    float shadow = 1.0;
+
+    // Uncomment if DirectionalLight.castShadow = true
     /*
     DirectionalLightShadow directionalShadow = directionalLightShadows[0];
 
-    float shadow = getShadow(
+    shadow = getShadow(
         directionalShadowMap[0],
         directionalShadow.shadowMapSize,
         directionalShadow.shadowBias,
@@ -159,7 +162,6 @@ void main() {
     );
     */
 
-    // Directional Light
     vec3 lightDir = directionalLights[0].direction;
 
     if (isFace) {
@@ -174,12 +176,12 @@ void main() {
 
         float angle = acos(RdotL) / PI * 2.0;
         angle = mix(angle - 1.0, 1.0 - angle, step(0.0, RdotL));
-        lightDir *= step(angle, faceShadow);
+        shadow = min(shadow, step(angle, faceShadow));
     }
 
+    // Directional Light
     float NdotL = max(dot(normal, lightDir), 0.0);
-    float lightIntensity = NdotL; // * shadow;
-
+    float lightIntensity = NdotL * shadow;
     vec3 directionalLight = directionalLights[0].color * lightIntensity * lightTint;
 
     // Metallic
@@ -213,7 +215,8 @@ void main() {
     vec3 rim = rimIntensity * directionalLights[0].color * rimTint;
 
     // Final Lighting
-    vec3 finalLighting = directionalLight + specular + rim;
+    vec3 finalLighting = directionalLight + specular + rim + ambientLightColor * ambientTint;
+    finalLighting *= mix(vec3(1.0), shadowTint, 1.0 - lightIntensity);
 
     if (isOutline) {
         vec3 colorBurn = 1.0 - (1.0 - baseColor) / max(baseColor, 0.001);
@@ -228,34 +231,33 @@ void main() {
         return;
     }
 
-    vec3 litColor = baseColor * (ambientLightColor * ambientTint + finalLighting);
-    vec3 withShadowTint = litColor * mix(vec3(1.0), shadowTint, 1.0 - lightIntensity);
+    vec3 color = baseColor * finalLighting;
 
     // Color Grading
-    vec3 correctExposure = withShadowTint * exposure; // Compensating for SMAA/SSAA post-processing, which makes it look overexposed
+    color *= exposure; // Compensating for SMAA/SSAA post-processing, which makes it look overexposed
 
-    if (isHair) correctExposure += directionalLight * texture2D(hairHM, vUv).r * 0.075; // Hair Highlights
+    if (isHair) color += directionalLight * texture2D(hairHM, vUv).r * 0.075; // Hair Highlights
 
-    vec3 GT = vec3(GTTonemap(correctExposure.r), GTTonemap(correctExposure.g), GTTonemap(correctExposure.b));
-    vec3 correctGamma = pow(GT, vec3(invGamma)); // Compensating for SMAA/SSAA
-    vec3 finalColor = adjustSat(correctGamma, saturation);
+    color = vec3(GTTonemap(color.r), GTTonemap(color.g), GTTonemap(color.b));
+    color = pow(color, vec3(invGamma)); // Compensating for SMAA/SSAA
+    color = adjustSat(color, saturation);
 
     if (isHair) {
-        finalColor = adjustSat(finalColor, hairSaturation);
+        color = adjustSat(color, hairSaturation);
     } else if (isFur) {
         float rim = 1.0 - abs(NdotV); // double-sided
         rim = pow(rim, 3.25);
-        gl_FragColor = vec4(finalColor, texture2D(base, vUv2).r * rim);
+        gl_FragColor = vec4(color, texture2D(base, vUv2).r * rim);
         return;
     }
 
     if (hasFX) {
         float stars = texture2D(fx, vUv * 4.0).r * texture2D(fx, vUv).a;
-        if (isHair) finalColor += texture2D(sparkle, vViewDir.xy * abs(vViewPos.z) * 0.1667).r * step(0.05, stars) * 2.0;
-        else finalColor += stars;
+        if (isHair) color += texture2D(sparkle, vViewDir.xy * abs(vViewPos.z) * 0.1667).r * step(0.05, stars) * 2.0;
+        else color += stars;
     }
 
-    gl_FragColor = vec4(finalColor, 1.0);
+    gl_FragColor = vec4(color, 1.0);
 }
 
 // GT Tonemap
