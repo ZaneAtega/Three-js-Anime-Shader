@@ -72,7 +72,6 @@ uniform float milkwayMinG;
 
 uniform sampler2D fx;
 uniform bool hasFX;
-uniform bool useSparkle;
 
 /* --- */
 
@@ -255,7 +254,7 @@ void main() {
 
     if (hasFX) {
         float stars = texture2D(fx, vUv * 4.0).r * texture2D(fx, vUv).a;
-        if (useSparkle) finalColor += texture2D(sparkle, vViewDir.xy * abs(vViewPos.z) * 0.125).r * step(0.03, stars);
+        if (isHair) finalColor += texture2D(sparkle, vViewDir.xy * abs(vViewPos.z) * 0.1667).r * step(0.05, stars) * 2.0;
         else finalColor += stars;
     }
 
