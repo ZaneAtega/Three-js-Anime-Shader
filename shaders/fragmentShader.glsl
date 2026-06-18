@@ -60,15 +60,12 @@ uniform bool isHair;
 // Denia
 
 uniform sampler2D milkway;
+uniform sampler2D milkwayMask;
 uniform sampler2D sparkle;
 
 uniform bool hasMilkway;
 uniform bool shouldGlowRed;
 uniform bool isDeniaChest;
-
-uniform sampler2D milkwayMask;
-uniform bool hasMilkwayMask;
-uniform float milkwayMinG;
 
 uniform sampler2D fx;
 uniform bool hasFX;
@@ -114,7 +111,7 @@ void main() {
 
         if (shouldGlowRed) milkwayTex += vec3(1.0, 0.0, 0.18) * clamp(pow(facing, 2.05333) * 0.81636, 0.0, 1.0);
 
-        if (isDeniaChest || (hasMilkwayMask ? texture2D(milkwayMask, vUv).g : texture2D(ftm, vUv).g) > milkwayMinG) {
+        if (isDeniaChest || texture2D(milkwayMask, vUv).g > 0.5) {
             gl_FragColor = vec4(baseColor + milkwayTex, 1.0);
             return;
         }
