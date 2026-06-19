@@ -55,5 +55,4 @@ Just show me what you're making with it! (credits appreciated)
 
 ## References
 * [Mayacoda](https://www.maya-ndljk.com/blog/threejs-basic-toon-shader) - Vertex & Fragment Shaders Foundation<br>
-* [Jared Nyts](https://x.com/jared_nyts) WuWa Shader - MatCap Texture & GT Tonemapping Formula
 * [Jonn](https://wheresjonn.gumroad.com/) - Went over his shader in Blender to get a general idea of how Denia's arms and legs worked

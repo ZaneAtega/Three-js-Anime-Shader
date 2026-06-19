@@ -36,8 +36,8 @@ uniform float aCutoff;
 uniform float gCutoff;
 uniform bool isFur;
 
-uniform sampler2D normalMap;
-uniform bool hasNormalMap;
+uniform sampler2D nrm;
+uniform bool hasNRM;
 
 uniform sampler2D outlineMask;
 uniform bool hasOutlineMask;
@@ -61,11 +61,12 @@ uniform bool isHair;
 
 uniform sampler2D milkway;
 uniform sampler2D milkwayMask;
-uniform sampler2D sparkle;
-
 uniform bool hasMilkway;
 uniform bool shouldGlowRed;
-uniform bool isDeniaChest;
+
+uniform sampler2D sparkle;
+uniform float sparkleTiling;
+uniform float invSparkleTiling;
 
 uniform sampler2D fx;
 uniform bool hasFX;
@@ -106,21 +107,27 @@ void main() {
 
     if (hasMilkway) {
         vec3 milkwayTex = texture2D(milkway, vViewDir.xy * 4.0).rgb;
-
-        milkwayTex += vec3(0.108, 0.386, 1.0) * texture2D(sparkle, vViewDir.xy * 4.0).r;
+        milkwayTex += vec3(0.108, 0.386, 1.0) * texture2D(sparkle, vViewDir.xy * sparkleTiling).r;
 
         if (shouldGlowRed) milkwayTex += vec3(1.0, 0.0, 0.18) * clamp(pow(facing, 2.05333) * 0.81636, 0.0, 1.0);
 
-        if (isDeniaChest || texture2D(milkwayMask, vUv).g > 0.5) {
+        if (texture2D(milkwayMask, vUv).g > 0.5) {
             gl_FragColor = vec4(baseColor + milkwayTex, 1.0);
             return;
         }
     }
 
-    // This is correct but UV seams are visible :(
-    /*
-    if (hasNormalMap) {
-        vec3 tangentNormal = vec3(texture2D(normalMap, vUv).rg * 2.0 - 1.0, 0.0);
+    float isMetallic = 0.0;
+
+    if (hasNRM) {
+        vec4 nrm = texture2D(nrm, vUv);
+
+        nrm.a = 1.0 - nrm.a;
+        isMetallic = nrm.a * step(0.425, nrm.a);
+
+        // This is correct but UV seams are visible :(
+        /*
+        vec3 tangentNormal = vec3(nrm.rg * 2.0 - 1.0, 0.0);
         tangentNormal.z = sqrt(1.0 - dot(tangentNormal.xy, tangentNormal.xy));
 
         mat3 tbn = mat3(vTangent, vBitangent, normal);
@@ -129,8 +136,8 @@ void main() {
 
         NdotV = dot(normal, vViewDir);
         facing = 1.0 - max(NdotV, 0.0);
+        */
     }
-    */
 
     if (isEye) {
         baseColor = mix(
@@ -186,18 +193,20 @@ void main() {
 
     // Metallic
     if (hasFTM) {
-        vec3 viewReflect = reflect(-vec3(vViewDir.z, vViewDir.y, -vViewDir.x), normal); // Rotate 90 about Y
-        vec3 lightReflect = reflect(-vec3(lightDir.z, lightDir.y, -lightDir.x), normal);
-
-        vec2 metallicUV = normalize(viewReflect + lightReflect * NdotL).xy;
-        metallicUV = metallicUV * 0.5 + 0.5;
-
-        float metallic = adjustSat(texture2D(metallicMatCap, metallicUV).rgb, 0.0).r;
-        float metallicMask = step(0.667, texture2D(ftm, vUv).g);
-
-        baseColor = mix(baseColor, baseColor * metallic, metallicMask);
-        baseColor *= 1.0 + metallicMask;
+        float ftmG = texture2D(ftm, vUv).g;
+        isMetallic = min(isMetallic + ftmG * step(0.667, ftmG), 1.0);
     }
+
+    vec3 viewReflect = reflect(-vec3(vViewDir.z, vViewDir.y, -vViewDir.x), normal); // Rotate 90 about Y
+    vec3 lightReflect = reflect(-vec3(lightDir.z, lightDir.y, -lightDir.x), normal);
+
+    vec2 metallicUV = normalize(viewReflect + lightReflect * NdotL).xy;
+    metallicUV = metallicUV * 0.5 + 0.5;
+
+    float metallic = adjustSat(texture2D(metallicMatCap, metallicUV).rgb, 0.0).r;
+
+    baseColor = mix(baseColor, baseColor * metallic, isMetallic);
+    baseColor *= 1.0 + isMetallic;
 
     // Specular (Blinn-Phong)
     vec3 halfVector = normalize(lightDir + vViewDir);
@@ -236,7 +245,8 @@ void main() {
     // Color Grading
     color *= exposure; // Compensating for SMAA/SSAA post-processing, which makes it look overexposed
 
-    if (isHair) color += directionalLight * texture2D(hairHM, vUv).r * 0.075; // Hair Highlights
+    if (isHair)
+        color += directionalLight * texture2D(hairHM, vUv).r * 0.075; // Hair Highlights
 
     color = vec3(GTTonemap(color.r), GTTonemap(color.g), GTTonemap(color.b));
     color = pow(color, vec3(invGamma)); // Compensating for SMAA/SSAA
@@ -253,8 +263,11 @@ void main() {
 
     if (hasFX) {
         float stars = texture2D(fx, vUv * 4.0).r * texture2D(fx, vUv).a;
-        if (isHair) color += texture2D(sparkle, vViewDir.xy * abs(vViewPos.z) * 0.1667).r * step(0.05, stars) * 2.0;
-        else color += stars;
+
+        if (invSparkleTiling > 0.0)
+            color += texture2D(sparkle, vViewDir.xy * abs(vViewPos.z) * invSparkleTiling).r * step(0.05, stars) * 2.0;
+        else
+            color += stars;
     }
 
     gl_FragColor = vec4(color, 1.0);
