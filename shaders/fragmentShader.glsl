@@ -36,22 +36,22 @@ uniform float aCutoff;
 uniform float gCutoff;
 uniform bool isFur;
 
-uniform sampler2D nrm;
-uniform bool hasNRM;
-
 uniform sampler2D outlineMask;
 uniform bool hasOutlineMask;
 
-uniform sampler2D ftm;
-uniform sampler2D metallicMatCap;
-uniform bool hasFTM;
+uniform sampler2D nrm;
+uniform bool hasNRM;
 
 uniform sampler2D faceSDF;
 uniform sampler2D het;
 uniform bool isFace;
 
+uniform sampler2D metallicMatCap;
+uniform sampler2D ftm;
+uniform bool hasFTM;
+
 uniform sampler2D eyeHighlight;
-uniform sampler2D eyeBottomHighlight;
+uniform sampler2D eyeHighlightBottom;
 uniform bool isEye;
 
 uniform sampler2D hairHM;
@@ -109,7 +109,8 @@ void main() {
         vec3 milkwayTex = texture2D(milkway, vViewDir.xy * 4.0).rgb;
         milkwayTex += vec3(0.108, 0.386, 1.0) * texture2D(sparkle, vViewDir.xy * sparkleTiling).r;
 
-        if (shouldGlowRed) milkwayTex += vec3(1.0, 0.0, 0.18) * clamp(pow(facing, 2.05333) * 0.81636, 0.0, 1.0);
+        if (shouldGlowRed)
+            milkwayTex += vec3(1.0, 0.0, 0.18) * clamp(pow(facing, 2.05333) * 0.81636, 0.0, 1.0);
 
         if (texture2D(milkwayMask, vUv).g > 0.5) {
             gl_FragColor = vec4(baseColor + milkwayTex, 1.0);
@@ -137,14 +138,6 @@ void main() {
         NdotV = dot(normal, vViewDir);
         facing = 1.0 - max(NdotV, 0.0);
         */
-    }
-
-    if (isEye) {
-        baseColor = mix(
-            mix(baseColor, vec3(1.0), texture2D(eyeHighlight, vUv).r),
-            vec3(1.0),
-            texture2D(eyeBottomHighlight, vUv).r
-        );
     }
 
     // Adjust Tints
@@ -197,13 +190,16 @@ void main() {
         isMetallic = min(isMetallic + ftmG * step(0.667, ftmG), 1.0);
     }
 
-    vec3 viewReflect = reflect(-vec3(vViewDir.z, vViewDir.y, -vViewDir.x), normal); // Rotate 90 about Y
-    vec3 lightReflect = reflect(-vec3(lightDir.z, lightDir.y, -lightDir.x), normal);
-
-    vec2 metallicUV = normalize(viewReflect + lightReflect * NdotL).xy;
-    metallicUV = metallicUV * 0.5 + 0.5;
-
-    float metallic = adjustSat(texture2D(metallicMatCap, metallicUV).rgb, 0.0).r;
+    vec3 r = normalize(
+        reflect(vViewDir, normal) +
+        reflect(lightDir, normal) * NdotL
+    );
+    float m = 2.0 * sqrt(
+        r.x * r.x +
+        r.y * r.y +
+        (r.z + 1.0) * (r.z + 1.0)
+    );
+    float metallic = adjustSat(texture2D(metallicMatCap, r.xy / m + 0.5).rgb, 0.0).r;
 
     baseColor = mix(baseColor, baseColor * metallic, isMetallic);
     baseColor *= 1.0 + isMetallic;
@@ -223,7 +219,8 @@ void main() {
     rimIntensity = smoothstep(rimAmount - 0.01, rimAmount + 0.01, rimIntensity);
     vec3 rim = rimIntensity * directionalLights[0].color * rimTint;
 
-    // Final Lighting
+    /* Final Color */
+
     vec3 finalLighting = directionalLight + specular + rim + ambientLightColor * ambientTint;
     finalLighting *= mix(vec3(1.0), shadowTint, 1.0 - lightIntensity);
 
@@ -240,14 +237,15 @@ void main() {
         return;
     }
 
+    if (isEye)
+       baseColor += texture2D(eyeHighlight, vUv).r + texture2D(eyeHighlightBottom, vUv).r;
+    else if (isHair)
+       baseColor += min(texture2D(hairHM, vUv).r * directionalLight, 0.03); // Highlights
+
     vec3 color = baseColor * finalLighting;
 
     // Color Grading
     color *= exposure; // Compensating for SMAA/SSAA post-processing, which makes it look overexposed
-
-    if (isHair)
-        color += directionalLight * texture2D(hairHM, vUv).r * 0.075; // Hair Highlights
-
     color = vec3(GTTonemap(color.r), GTTonemap(color.g), GTTonemap(color.b));
     color = pow(color, vec3(invGamma)); // Compensating for SMAA/SSAA
     color = adjustSat(color, saturation);
