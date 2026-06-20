@@ -17,9 +17,9 @@ uniform float rimLightThreshold;
 uniform float rimThreshold;
 uniform float metallicBrightness;
 
+uniform float outlineLightInfluence;
 uniform float outlineBurnIntensity;
 uniform float outlineMaxBrightness;
-uniform float outlineLightInfluence;
 uniform bool isOutline;
 
 uniform float hairShine;
@@ -63,6 +63,7 @@ uniform sampler2D milkway;
 uniform sampler2D milkwayMask;
 uniform bool hasMilkway;
 uniform bool shouldGlowRed;
+uniform bool isDeniaChest;
 
 uniform sampler2D sparkle;
 uniform float sparkleTiling;
@@ -129,7 +130,7 @@ void main() {
         if (shouldGlowRed)
             milkwayTex += vec3(1.0, 0.0, 0.18) * clamp(pow(facing, 2.05333) * 0.81636, 0.0, 1.0);
 
-        if (texture2D(milkwayMask, vUv).g > 0.5) {
+        if (isDeniaChest || texture2D(milkwayMask, vUv).g > 0.5) {
             gl_FragColor = vec4(baseColor + milkwayTex, 1.0);
             return;
         }
@@ -199,19 +200,21 @@ void main() {
         isMetallic = min(isMetallic + ftmG * step(0.667, ftmG), 1.0);
     }
 
-    vec3 r = normalize(
-        reflect(vViewDir, normal) +
-        reflect(lightDir, normal) * NdotL
-    );
-    float m = 2.0 * sqrt(
-        r.x * r.x +
-        r.y * r.y +
-        (r.z + 1.0) * (r.z + 1.0)
-    );
-    float metallic = adjustSat(texture2D(metallicMatCap, r.xy / m + 0.5).rgb, 0.0).r;
+    if (isMetallic > 0.0) {
+        vec3 r = normalize(
+            reflect(vViewDir, normal) +
+            reflect(lightDir, normal) * NdotL
+        );
+        float m = 2.0 * sqrt(
+            r.x * r.x +
+            r.y * r.y +
+            (r.z + 1.0) * (r.z + 1.0)
+        );
+        float metallic = adjustSat(texture2D(metallicMatCap, r.xy / m + 0.5).rgb, 0.0).r;
 
-    baseColor = mix(baseColor, baseColor * metallic, isMetallic);
-    baseColor *= 1.0 + isMetallic * metallicBrightness;
+        baseColor = mix(baseColor, baseColor * metallic, isMetallic);
+        baseColor *= 1.0 + isMetallic * metallicBrightness;
+    }
 
     /* Final Color */
 
