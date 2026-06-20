@@ -27,7 +27,7 @@ WebGLRenderer.physicallyCorrectLights = true;
 
 DirectionalLight.intensity = 0.4;
 ```
-UnrealBloomPass 0.3, 0.95, 0.4<br>
+UnrealBloomPass 0.275, 0.95, 0.4<br>
 SMAAPass
 
 </details>
