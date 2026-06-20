@@ -171,7 +171,8 @@ void main() {
     // Directional Light
     float NdotL = max(dot(normal, lightDir), 0.0);
     float lightIntensity = NdotL * shadow;
-    vec3 directionalLight = directionalLights[0].color * lightIntensity * adjustSat(lightTint, tintStrength);
+    vec3 lightTint = adjustSat(lightTint, tintStrength);
+    vec3 directionalLight = lightIntensity * directionalLights[0].color * lightTint;
 
     // Specular (Blinn-Phong)
     float NdotH = max(dot(normal, normalize(lightDir + vViewDir)), 0.0);
@@ -180,7 +181,7 @@ void main() {
     // Fresnel
     vec3 F0 = vec3(0.04);
     vec3 F = F0 + (1.0 - F0) * pow(1.0 - NdotV, 5.0);
-    vec3 specular = specularIntensity * F * directionalLights[0].color * adjustSat(lightTint, tintStrength);
+    vec3 specular = specularIntensity * F * directionalLights[0].color * lightTint;
 
     // Rim Light
     float rimIntensity = facing * pow(NdotL, rimLightThreshold);
