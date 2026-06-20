@@ -27,7 +27,7 @@ WebGLRenderer.physicallyCorrectLights = true;
 
 DirectionalLight.intensity = 0.4;
 ```
-UnrealBloomPass 0.325, 0.95, 0.4<br>
+UnrealBloomPass 0.3, 0.95, 0.4<br>
 SMAAPass
 
 </details>
@@ -35,18 +35,17 @@ SMAAPass
 <summary>Uniforms</summary>
 
 ```js
-specularExp: { value: 500.0 },
+specularExp: { value: 10.0 },
 
-rimThreshold: { value: 0.2 },
-rimAmount: { value: 0.6 },
+rimLightThreshold: { value: 0.2 },
+rimThreshold: { value: 0.7 },
+
+outlineLightInfluence: { value: 0.667 },
+outlineMaxBrightness: { value: 0.25 },
 
 // Compensating for SMAA/SSAA post-processing, which makes it look overexposed
 exposure: { value: 0.5 }, 
 invGamma: { value: 1.0 / 1.55 },
-
-outlineBurnIntensity: { value: 0.2 },
-outlineLightInfluence: { value: 0.667 },
-outlineMaxBrightness: { value: 0.3 }
 ```
 </details>
 

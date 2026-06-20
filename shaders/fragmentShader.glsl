@@ -13,21 +13,21 @@ uniform vec3 shadowTint;
 uniform float tintStrength;
 
 uniform float specularExp;
-
+uniform float rimLightThreshold;
 uniform float rimThreshold;
-uniform float rimAmount;
+uniform float metallicBrightness;
+
+uniform float outlineBurnIntensity;
+uniform float outlineMaxBrightness;
+uniform float outlineLightInfluence;
+uniform bool isOutline;
+
+uniform float hairShine;
 
 uniform float exposure;
 uniform float invGamma;
-
 uniform float saturation;
 uniform float hairSaturation;
-
-uniform float outlineBurnIntensity;
-uniform float outlineLightInfluence;
-uniform float outlineMaxBrightness;
-uniform float outlineMaxBrightnessHair;
-uniform bool isOutline;
 
 // TEXTURES
 
@@ -51,7 +51,7 @@ uniform sampler2D ftm;
 uniform bool hasFTM;
 
 uniform sampler2D eyeHighlight;
-uniform sampler2D eyeHighlightBottom;
+uniform sampler2D eyeBottomHighlight;
 uniform bool isEye;
 
 uniform sampler2D hairHM;
@@ -96,11 +96,28 @@ void main() {
 
     if (
         baseTex.a < aCutoff ||
-        gCutoff > 0.0 && distance(baseTex.rgb, vec3(0.0, 1.0, 0.0)) < gCutoff ||
+        gCutoff > 0.0 && distance(baseColor, vec3(0.0, 1.0, 0.0)) < gCutoff ||
         isOutline && hasOutlineMask && texture2D(outlineMask, vUv).r == 0.0
     ) discard;
 
     vec3 normal = vNormal;
+    float isMetallic = 0.0;
+
+    if (hasNRM) {
+        vec4 nrm = texture2D(nrm, vUv);
+
+        // This is correct but UV seams are visible :(
+        /*
+        vec3 tangentNormal = vec3(nrm.rg * 2.0 - 1.0, 0.0);
+        tangentNormal.z = sqrt(1.0 - dot(tangentNormal.xy, tangentNormal.xy));
+
+        mat3 tbn = mat3(vTangent, vBitangent, normal);
+        normal = normalize(tbn * tangentNormal);
+        */
+
+        nrm.a = 1.0 - nrm.a;
+        isMetallic = nrm.a * step(0.425, nrm.a);
+    }
 
     float NdotV = dot(normal, vViewDir);
     float facing = 1.0 - max(NdotV, 0.0);
@@ -117,34 +134,6 @@ void main() {
             return;
         }
     }
-
-    float isMetallic = 0.0;
-
-    if (hasNRM) {
-        vec4 nrm = texture2D(nrm, vUv);
-
-        nrm.a = 1.0 - nrm.a;
-        isMetallic = nrm.a * step(0.425, nrm.a);
-
-        // This is correct but UV seams are visible :(
-        /*
-        vec3 tangentNormal = vec3(nrm.rg * 2.0 - 1.0, 0.0);
-        tangentNormal.z = sqrt(1.0 - dot(tangentNormal.xy, tangentNormal.xy));
-
-        mat3 tbn = mat3(vTangent, vBitangent, normal);
-
-        normal = normalize(tbn * tangentNormal);
-
-        NdotV = dot(normal, vViewDir);
-        facing = 1.0 - max(NdotV, 0.0);
-        */
-    }
-
-    // Adjust Tints
-    vec3 lightTint = adjustSat(lightTint, tintStrength);
-    vec3 rimTint = adjustSat(rimTint, tintStrength);
-    vec3 ambientTint = adjustSat(ambientTint, tintStrength);
-    vec3 shadowTint = adjustSat(shadowTint, tintStrength);
 
     // Shadows
     float shadow = 1.0;
@@ -182,7 +171,26 @@ void main() {
     // Directional Light
     float NdotL = max(dot(normal, lightDir), 0.0);
     float lightIntensity = NdotL * shadow;
-    vec3 directionalLight = directionalLights[0].color * lightIntensity * lightTint;
+    vec3 directionalLight = directionalLights[0].color * lightIntensity * adjustSat(lightTint, tintStrength);
+
+    // Specular (Blinn-Phong)
+    float NdotH = max(dot(normal, normalize(lightDir + vViewDir)), 0.0);
+    float specularIntensity = pow(NdotH, specularExp) * lightIntensity;
+
+    // Fresnel
+    vec3 F0 = vec3(0.04);
+    vec3 F = F0 + (1.0 - F0) * pow(1.0 - NdotV, 5.0);
+    vec3 specular = specularIntensity * F * directionalLights[0].color * adjustSat(lightTint, tintStrength);
+
+    // Rim Light
+    float rimIntensity = facing * pow(NdotL, rimLightThreshold);
+    rimIntensity = smoothstep(rimThreshold - 0.01, rimThreshold + 0.01, rimIntensity);
+    vec3 rim = rimIntensity * directionalLights[0].color * adjustSat(rimTint, tintStrength);
+
+    // Final Lighting
+    vec3 finalLighting = directionalLight + specular + rim;
+    finalLighting += ambientLightColor * adjustSat(ambientTint, tintStrength);
+    finalLighting *= mix(vec3(1.0), adjustSat(shadowTint, tintStrength), 1.0 - lightIntensity);
 
     // Metallic
     if (hasFTM) {
@@ -202,45 +210,27 @@ void main() {
     float metallic = adjustSat(texture2D(metallicMatCap, r.xy / m + 0.5).rgb, 0.0).r;
 
     baseColor = mix(baseColor, baseColor * metallic, isMetallic);
-    baseColor *= 1.0 + isMetallic;
-
-    // Specular (Blinn-Phong)
-    vec3 halfVector = normalize(lightDir + vViewDir);
-    float NdotH = max(dot(normal, halfVector), 0.0);
-    float specularIntensity = pow(NdotH, specularExp) * lightIntensity;
-
-    // Fresnel
-    vec3 F0 = vec3(0.04);
-    vec3 F = F0 + (1.0 - F0) * pow(1.0 - dot(halfVector, vViewDir), 5.0);
-    vec3 specular = specularIntensity * directionalLights[0].color * F;
- 
-    // Rim Light
-    float rimIntensity = facing * pow(NdotL, rimThreshold);
-    rimIntensity = smoothstep(rimAmount - 0.01, rimAmount + 0.01, rimIntensity);
-    vec3 rim = rimIntensity * directionalLights[0].color * rimTint;
+    baseColor *= 1.0 + isMetallic * metallicBrightness;
 
     /* Final Color */
 
-    vec3 finalLighting = directionalLight + specular + rim + ambientLightColor * ambientTint;
-    finalLighting *= mix(vec3(1.0), shadowTint, 1.0 - lightIntensity);
-
     if (isOutline) {
+        vec3 outlineColor = mix(vec3(1.0), finalLighting, outlineLightInfluence);
+
         vec3 colorBurn = 1.0 - (1.0 - baseColor) / max(baseColor, 0.001);
-        colorBurn = mix(isHair ? vec3(1.0) : baseColor, colorBurn, outlineBurnIntensity);
-        vec3 outlineColor = colorBurn * mix(vec3(1.0), finalLighting, outlineLightInfluence);
+        outlineColor *= mix(baseColor, colorBurn, outlineBurnIntensity);
 
         float brightness = max(outlineColor.r, max(outlineColor.g, outlineColor.b));
-        float maxBrightness = isHair ? outlineMaxBrightnessHair : outlineMaxBrightness;
-        outlineColor *= min(1.0, maxBrightness / max(brightness, 0.001));
+        outlineColor *= min(1.0, outlineMaxBrightness / max(brightness, 0.001));
 
         gl_FragColor = vec4(outlineColor, 1.0);
         return;
     }
 
     if (isEye)
-       baseColor += texture2D(eyeHighlight, vUv).r + texture2D(eyeHighlightBottom, vUv).r;
+       baseColor += texture2D(eyeHighlight, vUv).r + texture2D(eyeBottomHighlight, vUv).r;
     else if (isHair)
-       baseColor += min(texture2D(hairHM, vUv).r * directionalLight, 0.03); // Highlights
+       baseColor += min(texture2D(hairHM, vUv).r * directionalLight, hairShine);
 
     vec3 color = baseColor * finalLighting;
 
