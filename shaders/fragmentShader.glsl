@@ -236,9 +236,9 @@ void main() {
     vec3 color = baseColor * finalLighting;
 
     // Color Grading
-    color *= exposure; // Compensating for SMAA/SSAA post-processing, which makes it look overexposed
+    color *= exposure;
     color = vec3(GTTonemap(color.r), GTTonemap(color.g), GTTonemap(color.b));
-    color = pow(color, vec3(invGamma)); // Compensating for SMAA/SSAA
+    color = pow(color, vec3(invGamma));
     color = adjustSat(color, saturation);
 
     if (isHair) {
