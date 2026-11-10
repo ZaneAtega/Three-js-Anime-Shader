@@ -1,0 +1,123 @@
+{
+  "BlendMode": 0,
+  "ShadingModel": 0,
+  "Textures": {
+    "MainTex": {
+      "ObjectName": "Texture2D'T_R2T1YounuoMd10011Bangs_D'",
+      "ObjectPath": "Client/Content/Aki/Character/Role/FemaleM/Younuo/R2T1YounuoMd10011/Model/T_R2T1YounuoMd10011Bangs_D.1"
+    },
+    "PM_Diffuse": {
+      "ObjectName": "Texture2D'T_R2T1YounuoMd10011Bangs_D'",
+      "ObjectPath": "Client/Content/Aki/Character/Role/FemaleM/Younuo/R2T1YounuoMd10011/Model/T_R2T1YounuoMd10011Bangs_D.1"
+    },
+    "T_R2T1YounuoMd10011Bangs_D": {
+      "ObjectName": "Texture2D'T_R2T1YounuoMd10011Bangs_D'",
+      "ObjectPath": "Client/Content/Aki/Character/Role/FemaleM/Younuo/R2T1YounuoMd10011/Model/T_R2T1YounuoMd10011Bangs_D.1"
+    },
+    "MaskTex": {
+      "ObjectName": "Texture2D'T_R2T1YounuoMd10011Bangs_HM'",
+      "ObjectPath": "Client/Content/Aki/Character/Role/FemaleM/Younuo/R2T1YounuoMd10011/Model/T_R2T1YounuoMd10011Bangs_HM.1"
+    },
+    "T_R2T1YounuoMd10011Bangs_HM": {
+      "ObjectName": "Texture2D'T_R2T1YounuoMd10011Bangs_HM'",
+      "ObjectPath": "Client/Content/Aki/Character/Role/FemaleM/Younuo/R2T1YounuoMd10011/Model/T_R2T1YounuoMd10011Bangs_HM.1"
+    },
+    "Ramp": {
+      "ObjectName": "Texture2D'T_R2T1ShouanrenMd10011_Skin'",
+      "ObjectPath": "Client/Content/Aki/Character/Role/FemaleM/Shouanren/R2T1ShouanrenMd10011/Model/T_R2T1ShouanrenMd10011_Skin.0"
+    },
+    "T_R2T1ShouanrenMd10011_Skin": {
+      "ObjectName": "Texture2D'T_R2T1ShouanrenMd10011_Skin'",
+      "ObjectPath": "Client/Content/Aki/Character/Role/FemaleM/Shouanren/R2T1ShouanrenMd10011/Model/T_R2T1ShouanrenMd10011_Skin.0"
+    }
+  },
+  "Colors": {
+    "SubsurfaceColor": {
+      "R": 0.555205,
+      "G": 0.541782,
+      "B": 0.654167,
+      "A": 1.0,
+      "Hex": "C5C3D4"
+    },
+    "ExtraShadowColor": {
+      "R": 0.4,
+      "G": 0.4,
+      "B": 0.4,
+      "A": 0.0,
+      "Hex": "AAAAAA"
+    },
+    "SkinBaseColor": {
+      "R": 0.701961,
+      "G": 0.639216,
+      "B": 0.564706,
+      "A": 1.0,
+      "Hex": "DAD2C6"
+    },
+    "SkinBaseColorNight": {
+      "R": 0.85098,
+      "G": 0.835294,
+      "B": 0.756863,
+      "A": 1.0,
+      "Hex": "EEECE2"
+    }
+  },
+  "Scalars": {
+    "ShadowProcess": 0.6,
+    "ShadowWidth": 0.03,
+    "MaskShadowOffsetStrength": 0.2,
+    "ShadowOffsetAdjustFactor": 1.0,
+    "ShadowOffsetPower": 1.0,
+    "SolidShadowStrength": 0.3,
+    "SpecStrength": 0.03,
+    "UseHairColor": -0.95,
+    "UseHairColorGradient": 0.54,
+    "R:OffsetPosition": 0.846,
+    "UseUVGradient_DYN": 1.0,
+    "UVGradientIn": 4.1,
+    "UvGradientProcess": 0.9,
+    "GradientIntensity": 2.0,
+    "GradientLambert": 1.0,
+    "GradientScaleMax": 1.0,
+    "GradientScaleMin": 0.0,
+    "BaseSphereLightInt": 1.0,
+    "ShdaowSphereLightInt": 1.0,
+    "ShowSphereLightMask": 0.0,
+    "Param": 1.0,
+    "RampInt": 0.3,
+    "RampPosition": 0.3,
+    "UVGradientSkinInt": 0.95,
+    "UVSaturationIntensity": 1.5,
+    "ToonRimWidth": 0.0,
+    "RefractionDepthBias": 0.0
+  },
+  "Switches": {
+    "UseHairVCGradient": true,
+    "UseToonMask": true,
+    "UseUVGradient": true,
+    "UseSphereGradient": true,
+    "UseRampColor": true,
+    "UseCurve": false,
+    "UseAllRampColor": false
+  },
+  "Properties": {
+    "bHasStaticPermutationResource": true,
+    "BasePropertyOverrides": {
+      "bOverride_TwoSided": true,
+      "bEnableAdaptiveTessellation": true,
+      "ShadingModel": "MSM_ToonHair",
+      "OpacityMaskClipValue": 0.3333,
+      "RenderQueue": 195,
+      "bIsCharacterHairMat": true,
+      "bCastRayTracedShadows": true,
+      "bIsOnlyForSkeletalMesh": true,
+      "bUsedWithSkeletalMesh": true,
+      "bUsedWithMorphTargets": true
+    }
+  },
+  "HasTopDiffuse": true,
+  "HasTopNormals": false,
+  "HasTopSpecularMasks": false,
+  "HasTopEmissive": false,
+  "IsTranslucent": false,
+  "IsNull": false
+}

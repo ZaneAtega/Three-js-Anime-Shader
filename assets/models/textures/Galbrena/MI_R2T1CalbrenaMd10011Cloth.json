@@ -1,0 +1,198 @@
+{
+  "BlendMode": 0,
+  "ShadingModel": 0,
+  "Textures": {
+    "MainTex": {
+      "ObjectName": "Texture2D'T_R2T1CalbrenaMd10011Cloth_D'",
+      "ObjectPath": "Client/Content/Aki/Character/Role/FemaleXL/Jiabeilina/R2T1CalbrenaMd10011/Model/T_R2T1CalbrenaMd10011Cloth_D.1"
+    },
+    "PM_Diffuse": {
+      "ObjectName": "Texture2D'T_MC_premake_D'",
+      "ObjectPath": "Client/Content/Aki/Character/Role/CommonTexture/CharacterCubeMaps/T_MC_premake_D.1"
+    },
+    "T_R2T1CalbrenaMd10011Cloth_D": {
+      "ObjectName": "Texture2D'T_R2T1CalbrenaMd10011Cloth_D'",
+      "ObjectPath": "Client/Content/Aki/Character/Role/FemaleXL/Jiabeilina/R2T1CalbrenaMd10011/Model/T_R2T1CalbrenaMd10011Cloth_D.1"
+    },
+    "TypeMask": {
+      "ObjectName": "Texture2D'T_R2T1CalbrenaMd10011Cloth_ID'",
+      "ObjectPath": "Client/Content/Aki/Character/Role/FemaleXL/Jiabeilina/R2T1CalbrenaMd10011/Model/T_R2T1CalbrenaMd10011Cloth_ID.0"
+    },
+    "T_R2T1CalbrenaMd10011Cloth_ID": {
+      "ObjectName": "Texture2D'T_R2T1CalbrenaMd10011Cloth_ID'",
+      "ObjectPath": "Client/Content/Aki/Character/Role/FemaleXL/Jiabeilina/R2T1CalbrenaMd10011/Model/T_R2T1CalbrenaMd10011Cloth_ID.0"
+    },
+    "MaskTex": null,
+    "None": null,
+    "PM_Normals": {
+      "ObjectName": "Texture2D'T_R2T1CalbrenaMd10011Cloth_N'",
+      "ObjectPath": "Client/Content/Aki/Character/Role/FemaleXL/Jiabeilina/R2T1CalbrenaMd10011/Model/T_R2T1CalbrenaMd10011Cloth_N.1"
+    },
+    "Normal_Roughness_Metallic": {
+      "ObjectName": "Texture2D'T_R2T1CalbrenaMd10011Cloth_N'",
+      "ObjectPath": "Client/Content/Aki/Character/Role/FemaleXL/Jiabeilina/R2T1CalbrenaMd10011/Model/T_R2T1CalbrenaMd10011Cloth_N.1"
+    },
+    "MatCapTex": {
+      "ObjectName": "Texture2D'T_MC_premake_D'",
+      "ObjectPath": "Client/Content/Aki/Character/Role/CommonTexture/CharacterCubeMaps/T_MC_premake_D.1"
+    },
+    "T_MC_premake_D": {
+      "ObjectName": "Texture2D'T_MC_premake_D'",
+      "ObjectPath": "Client/Content/Aki/Character/Role/CommonTexture/CharacterCubeMaps/T_MC_premake_D.1"
+    },
+    "Ramp": {
+      "ObjectName": "Texture2D'T_R2T1CalbrenaMd10011_Skin'",
+      "ObjectPath": "Client/Content/Aki/Character/Role/FemaleXL/Jiabeilina/R2T1CalbrenaMd10011/Model/T_R2T1CalbrenaMd10011_Skin.0"
+    },
+    "T_R2T1CalbrenaMd10011_Skin": {
+      "ObjectName": "Texture2D'T_R2T1CalbrenaMd10011_Skin'",
+      "ObjectPath": "Client/Content/Aki/Character/Role/FemaleXL/Jiabeilina/R2T1CalbrenaMd10011/Model/T_R2T1CalbrenaMd10011_Skin.0"
+    }
+  },
+  "Colors": {
+    "白1号": {
+      "R": 0.933333,
+      "G": 0.85098,
+      "B": 0.717647,
+      "A": 1.0,
+      "Hex": "F8EEDD"
+    },
+    "白1号晚上": {
+      "R": 0.960784,
+      "G": 0.941177,
+      "B": 0.85,
+      "A": 1.0,
+      "Hex": "FBF9EE"
+    },
+    "SkinShadowColor1": {
+      "R": 0.568627,
+      "G": 0.54902,
+      "B": 0.45098,
+      "A": 0.0,
+      "Hex": "C7C4B3"
+    },
+    "SubsurfaceColor": {
+      "R": 0.677092,
+      "G": 0.682731,
+      "B": 0.755208,
+      "A": 0.0,
+      "Hex": "D7D8E2"
+    },
+    "StockingColor": {
+      "R": 0.638542,
+      "G": 0.638542,
+      "B": 0.638542,
+      "A": 0.0,
+      "Hex": "D1D1D1"
+    },
+    "StockingEdgeColor": {
+      "R": 0.408691,
+      "G": 0.417228,
+      "B": 0.475,
+      "A": 0.0,
+      "Hex": "ABADB7"
+    },
+    "AnistropyColor": {
+      "R": 0.04262,
+      "G": 0.041817,
+      "B": 0.045833,
+      "A": 0.0,
+      "Hex": "3A393C"
+    },
+    "StockingLightColor": {
+      "R": 0.075,
+      "G": 0.075,
+      "B": 0.075,
+      "A": 0.0,
+      "Hex": "4D4D4D"
+    },
+    "SkinBaseColor": {
+      "R": 0.701961,
+      "G": 0.639216,
+      "B": 0.564706,
+      "A": 1.0,
+      "Hex": "DAD2C6"
+    },
+    "SkinBaseColorNight": {
+      "R": 0.85098,
+      "G": 0.835294,
+      "B": 0.756863,
+      "A": 1.0,
+      "Hex": "EEECE2"
+    },
+    "SkinColor": {
+      "R": 0.901042,
+      "G": 0.882113,
+      "B": 0.836686,
+      "A": 1.0,
+      "Hex": "F4F2EC"
+    }
+  },
+  "Scalars": {
+    "SolidShadowSaturation": 1.0,
+    "SolidShadowView": 1.0,
+    "ShadowProcess": 0.6,
+    "ShadowWidth": 0.1,
+    "NormalStrength": 1.0,
+    "EdgeEnvBRDFIntensity": 0.0,
+    "MetalSpecularPower": 2.0,
+    "SpecularPower": 8.0,
+    "PBRRateIntensity": 0.7,
+    "StockingIntensity": 0.8,
+    "StockingRangeMin": 0.4,
+    "StockingRangeMax": 1.0,
+    "AnistropyInt": 13.359682,
+    "AnistropyNormalInt": 0.928458,
+    "StockingLightRangeMax": 1.988585,
+    "StockingLightRangeMin": 0.298966,
+    "UseUVGradient_DYN": 1.0,
+    "UvGradientProcess": 0.26,
+    "GradientIntensity": 4.0,
+    "GradientLambert": 1.0,
+    "GradientScaleMax": 1.0,
+    "GradientScaleMin": 0.0,
+    "BaseSphereLightInt": 0.3,
+    "ShdaowSphereLightInt": 0.4,
+    "ShowSphereLightMask": 0.0,
+    "Param": 0.0,
+    "RampInt": 0.2,
+    "RampPosition": 0.7,
+    "UVGradientSkinInt": 0.95,
+    "UVSaturationIntensity": 1.5,
+    "RefractionDepthBias": 0.0
+  },
+  "Switches": {
+    "UseLightOffset_Pitch": true,
+    "UseStocking": true,
+    "UseTypeMask": true,
+    "UseSkinMask": true,
+    "UseToonMask": true,
+    "UseMainTexA": true,
+    "UseUVGradient": true,
+    "UseSphereGradient": true,
+    "UsePBR": false,
+    "使用PBRMask": true,
+    "UseNormalMap": true,
+    "UseRampColor": true
+  },
+  "Properties": {
+    "bHasStaticPermutationResource": true,
+    "BasePropertyOverrides": {
+      "bOverride_TwoSided": true,
+      "bEnableAdaptiveTessellation": true,
+      "ShadingModel": "MSM_ToonCommon",
+      "OpacityMaskClipValue": 0.3333,
+      "RenderQueue": 180,
+      "bCastRayTracedShadows": true,
+      "bIsOnlyForSkeletalMesh": true,
+      "bUsedWithSkeletalMesh": true,
+      "bUsedWithMorphTargets": true
+    }
+  },
+  "HasTopDiffuse": true,
+  "HasTopNormals": false,
+  "HasTopSpecularMasks": false,
+  "HasTopEmissive": false,
+  "IsTranslucent": false,
+  "IsNull": false
+}

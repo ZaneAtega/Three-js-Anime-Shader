@@ -1,0 +1,118 @@
+{
+  "BlendMode": 1,
+  "ShadingModel": 0,
+  "Textures": {
+    "MaskTex": null,
+    "None": null,
+    "PM_Diffuse": {
+      "ObjectName": "Texture2D'T_Fur02_M'",
+      "ObjectPath": "Client/Content/Aki/Character/Role/CommonTexture/Fur/T_Fur02_M.0"
+    },
+    "Fur_Tex": {
+      "ObjectName": "Texture2D'T_Fur02_M'",
+      "ObjectPath": "Client/Content/Aki/Character/Role/CommonTexture/Fur/T_Fur02_M.0"
+    },
+    "FlowmapMap": {
+      "ObjectName": "Texture2D'T_Normal_Flowmap_40001_2'",
+      "ObjectPath": "Client/Content/Aki/Effect/Texture/Normal/T_Normal_Flowmap_40001_2.0"
+    },
+    "PM_Normals": {
+      "ObjectName": "Texture2D'T_Normal_Flowmap_40001_2'",
+      "ObjectPath": "Client/Content/Aki/Effect/Texture/Normal/T_Normal_Flowmap_40001_2.0"
+    },
+    "T_Normal_Flowmap_40001_2": {
+      "ObjectName": "Texture2D'T_Normal_Flowmap_40001_2'",
+      "ObjectPath": "Client/Content/Aki/Effect/Texture/Normal/T_Normal_Flowmap_40001_2.0"
+    }
+  },
+  "Colors": {
+    "SkinBaseColor": {
+      "R": 0.96,
+      "G": 0.875294,
+      "B": 0.771429,
+      "A": 1.0,
+      "Hex": "FBF1E4"
+    },
+    "SkinBaseColorNight": {
+      "R": 0.960784,
+      "G": 0.941177,
+      "B": 0.85,
+      "A": 1.0,
+      "Hex": "FBF9EE"
+    }
+  },
+  "Scalars": {
+    "SkinBlendFactor": 1.0,
+    "SolidShadowSaturation": 1.0,
+    "SolidShadowView": 1.0,
+    "RampIndex": 0.5,
+    "RampInt": 0.4,
+    "PBRRateIntensity": 0.7,
+    "SpecularPower": 20.0,
+    "MetalSpecularPower": 15.0,
+    "FurClusterMax": 3.0,
+    "FurClusterMin": 3.0,
+    "FurAlphaIntensity": 1.2,
+    "FurRangeStep": 1.0,
+    "FurOffset": 0.0,
+    "UseMainTexAlpha": 0.0,
+    "MAX": 1.0,
+    "MIN": 0.0,
+    "FurBlendIntensity": 1.0,
+    "FurTexBias": 0.0,
+    "FurTexU": 1.0,
+    "Length": 0.0,
+    "UseVertexColor": 1.0,
+    "FurParallaxMax": 5.0,
+    "FurParallaxMin": 5.0,
+    "FlowMapInt": 0.0,
+    "FlowmapScale": 1.0,
+    "Height": 0.08,
+    "UseUVGradient_DYN": 1.0,
+    "UvGradientProcess": 0.26,
+    "BaseSphereLightInt": 0.3,
+    "ShdaowSphereLightInt": 0.8,
+    "ShowSphereLightMask": 0.0,
+    "UVGradientSkinInt": 0.95,
+    "LightOffset_Pitch": -10.0,
+    "RefractionDepthBias": 0.0
+  },
+  "Switches": {
+    "UseToonMask": true,
+    "UseMainTexA": true,
+    "UseTypeMask": true,
+    "DebugID": false,
+    "UseRampColor": true,
+    "UseNormalMap": true,
+    "UsePBR": true,
+    "FurMaskUseID": true,
+    "UseFurry": true,
+    "UseTangentClip": false,
+    "UseFurryParallax": false,
+    "UseUVGradient": true,
+    "UseFur": false
+  },
+  "Properties": {
+    "bHasStaticPermutationResource": true,
+    "BasePropertyOverrides": {
+      "bOverride_BlendMode": true,
+      "bOverride_TwoSided": true,
+      "TwoSided": true,
+      "bEnableAdaptiveTessellation": true,
+      "BlendMode": "BLEND_Masked",
+      "ShadingModel": "MSM_ToonCommon",
+      "OpacityMaskClipValue": 0.3333,
+      "RenderQueue": 180,
+      "bCastRayTracedShadows": true,
+      "bIsOnlyForSkeletalMesh": true,
+      "bUsedWithSkeletalMesh": true,
+      "bUsedWithMorphTargets": true
+    }
+  },
+  "HasTopDiffuse": false,
+  "HasTopNormals": false,
+  "HasTopSpecularMasks": false,
+  "HasTopEmissive": false,
+  "IsTranslucent": false,
+  "IsNull": false
+}

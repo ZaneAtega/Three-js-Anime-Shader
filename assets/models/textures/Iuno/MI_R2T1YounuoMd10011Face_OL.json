@@ -1,0 +1,49 @@
+{
+  "BlendMode": 0,
+  "ShadingModel": 0,
+  "Textures": {},
+  "Colors": {
+    "OutlineColor": {
+      "R": 0.300544,
+      "G": 0.194618,
+      "B": 0.177888,
+      "A": 1.0,
+      "Hex": "957A75"
+    }
+  },
+  "Scalars": {
+    "OutlineWidth": 0.12,
+    "InnerOutlineMulti": 600.0,
+    "InnerOutlineOffset": 0.5,
+    "OutlineClipWidth": 1.2,
+    "OutlineHoldDistance": 1.5,
+    "RefractionDepthBias": 0.0
+  },
+  "Switches": {
+    "UseVertexColorB_InnerOutline": true,
+    "UseVertexGreen_OutlineWidth": true
+  },
+  "Properties": {
+    "bHasStaticPermutationResource": true,
+    "BasePropertyOverrides": {
+      "bOverride_TwoSided": true,
+      "bEnableAdaptiveTessellation": true,
+      "ShadingModel": "MSM_ToonOutline",
+      "OpacityMaskClipValue": 0.3333,
+      "RenderQueue": 250,
+      "bCastRayTracedShadows": true,
+      "bIsOnlyForSkeletalMesh": true,
+      "bDisableCastDynamicShadows": true,
+      "bUsedWithSkeletalMesh": true,
+      "bUsedWithMorphTargets": true,
+      "bIsBackFace": true,
+      "bUseFullPrecision": true
+    }
+  },
+  "HasTopDiffuse": false,
+  "HasTopNormals": false,
+  "HasTopSpecularMasks": false,
+  "HasTopEmissive": false,
+  "IsTranslucent": false,
+  "IsNull": true
+}

@@ -1,0 +1,68 @@
+{
+  "BlendMode": 0,
+  "ShadingModel": 0,
+  "Textures": {
+    "MainTex": {
+      "ObjectName": "Texture2D'T_R2T1CalbrenaMd10011Cloth_D'",
+      "ObjectPath": "Client/Content/Aki/Character/Role/FemaleXL/Jiabeilina/R2T1CalbrenaMd10011/Model/T_R2T1CalbrenaMd10011Cloth_D.1"
+    },
+    "PM_Diffuse": {
+      "ObjectName": "Texture2D'T_R2T1CalbrenaMd10011Cloth_D'",
+      "ObjectPath": "Client/Content/Aki/Character/Role/FemaleXL/Jiabeilina/R2T1CalbrenaMd10011/Model/T_R2T1CalbrenaMd10011Cloth_D.1"
+    },
+    "T_R2T1CalbrenaMd10011Cloth_D": {
+      "ObjectName": "Texture2D'T_R2T1CalbrenaMd10011Cloth_D'",
+      "ObjectPath": "Client/Content/Aki/Character/Role/FemaleXL/Jiabeilina/R2T1CalbrenaMd10011/Model/T_R2T1CalbrenaMd10011Cloth_D.1"
+    }
+  },
+  "Colors": {
+    "OutlineColor": {
+      "R": 0.082258,
+      "G": 0.083908,
+      "B": 0.126042,
+      "A": 1.0,
+      "Hex": "515263"
+    },
+    "OutlineColorTint": {
+      "R": 0.258486,
+      "G": 0.311697,
+      "B": 0.391667,
+      "A": 0.0,
+      "Hex": "8B98A8"
+    }
+  },
+  "Scalars": {
+    "OutlineClipWidth": 1.2,
+    "OutlineHoldDistance": 1.5,
+    "MaxOutlineWidth": 0.48,
+    "RefractionDepthBias": 0.0
+  },
+  "Switches": {
+    "UseMainTex": true,
+    "UseVertexColorB_InnerOutline": true,
+    "UseVertexGreen_OutlineWidth": true
+  },
+  "Properties": {
+    "bHasStaticPermutationResource": true,
+    "BasePropertyOverrides": {
+      "bOverride_TwoSided": true,
+      "bEnableAdaptiveTessellation": true,
+      "ShadingModel": "MSM_ToonOutline",
+      "OpacityMaskClipValue": 0.3333,
+      "RenderQueue": 250,
+      "bCastRayTracedShadows": true,
+      "bIsOnlyForSkeletalMesh": true,
+      "bDisableCastDynamicShadows": true,
+      "bUsedWithSkeletalMesh": true,
+      "bUsedWithMorphTargets": true,
+      "bIsBackFace": true,
+      "bUseFullPrecision": true
+    }
+  },
+  "HasTopDiffuse": true,
+  "HasTopNormals": false,
+  "HasTopSpecularMasks": false,
+  "HasTopEmissive": false,
+  "IsTranslucent": false,
+  "IsNull": false
+}

@@ -1,0 +1,70 @@
+{
+  "BlendMode": 0,
+  "ShadingModel": 0,
+  "Textures": {
+    "MainTex": {
+      "ObjectName": "Texture2D'T_R2T1YounuoMd10011Down_D'",
+      "ObjectPath": "Client/Content/Aki/Character/Role/FemaleM/Younuo/R2T1YounuoMd10011/Model/T_R2T1YounuoMd10011Down_D.1"
+    },
+    "PM_Diffuse": {
+      "ObjectName": "Texture2D'T_R2T1YounuoMd10011Down_D'",
+      "ObjectPath": "Client/Content/Aki/Character/Role/FemaleM/Younuo/R2T1YounuoMd10011/Model/T_R2T1YounuoMd10011Down_D.1"
+    },
+    "T_R2T1YounuoMd10011Down_D": {
+      "ObjectName": "Texture2D'T_R2T1YounuoMd10011Down_D'",
+      "ObjectPath": "Client/Content/Aki/Character/Role/FemaleM/Younuo/R2T1YounuoMd10011/Model/T_R2T1YounuoMd10011Down_D.1"
+    }
+  },
+  "Colors": {
+    "OutlineColor": {
+      "R": 0.1625,
+      "G": 0.1625,
+      "B": 0.1625,
+      "A": 1.0,
+      "Hex": "707070"
+    },
+    "OutlineColorTint": {
+      "R": 0.395833,
+      "G": 0.395833,
+      "B": 0.395833,
+      "A": 0.0,
+      "Hex": "A9A9A9"
+    }
+  },
+  "Scalars": {
+    "OutlineWidth": 0.09,
+    "InnerOutlineMulti": 500.0,
+    "InnerOutlineOffset": 0.5,
+    "OutlineClipWidth": 1.5,
+    "OutlineHoldDistance": 2.0,
+    "RefractionDepthBias": 0.0
+  },
+  "Switches": {
+    "UseMainTex": true,
+    "UseVertexColorB_InnerOutline": true,
+    "UseVertexGreen_OutlineWidth": true
+  },
+  "Properties": {
+    "bHasStaticPermutationResource": true,
+    "BasePropertyOverrides": {
+      "bOverride_TwoSided": true,
+      "bEnableAdaptiveTessellation": true,
+      "ShadingModel": "MSM_ToonOutline",
+      "OpacityMaskClipValue": 0.3333,
+      "RenderQueue": 250,
+      "bCastRayTracedShadows": true,
+      "bIsOnlyForSkeletalMesh": true,
+      "bDisableCastDynamicShadows": true,
+      "bUsedWithSkeletalMesh": true,
+      "bUsedWithMorphTargets": true,
+      "bIsBackFace": true,
+      "bUseFullPrecision": true
+    }
+  },
+  "HasTopDiffuse": true,
+  "HasTopNormals": false,
+  "HasTopSpecularMasks": false,
+  "HasTopEmissive": false,
+  "IsTranslucent": false,
+  "IsNull": false
+}

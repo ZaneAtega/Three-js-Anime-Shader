@@ -1,8 +1,6 @@
 #include <common>
 #include <packing>
 #include <lights_pars_begin>
-// #include <shadowmap_pars_fragment>
-// #include <shadowmask_pars_fragment>
 
 // VISUAL CONTROLS
 
@@ -50,27 +48,40 @@ uniform sampler2D metallicMatCap;
 uniform sampler2D ftm;
 uniform bool hasFTM;
 
-uniform sampler2D eyeHighlight;
-uniform sampler2D eyeBottomHighlight;
-uniform bool isEye;
-
 uniform sampler2D hairHM;
 uniform bool isHair;
 
+#ifdef IS_EYE
+
+uniform bool useEyeHighlights;
+uniform sampler2D eyeHighlight;
+uniform sampler2D eyeBottomHighlight;
+
+uniform sampler2D eyeEm; // HDMF_EM
+uniform float eyeDepth;
+
+#endif
+
 // Denia
 
+#if defined(HAS_MILKWAY) || defined(HAS_FX)
+uniform sampler2D sparkle;
+uniform float time;
+uniform float sparkTimeSpeed;
+#endif
+
+#ifdef HAS_MILKWAY
 uniform sampler2D milkway;
 uniform sampler2D milkwayMask;
-uniform bool hasMilkway;
 uniform bool shouldGlowRed;
 uniform bool isDeniaChest;
-
-uniform sampler2D sparkle;
 uniform float sparkleTiling;
-uniform float invSparkleTiling;
+#endif
 
+#ifdef HAS_FX
 uniform sampler2D fx;
-uniform bool hasFX;
+uniform float invSparkleTiling;
+#endif
 
 /* --- */
 
@@ -123,35 +134,22 @@ void main() {
     float NdotV = dot(normal, vViewDir);
     float facing = 1.0 - max(NdotV, 0.0);
 
-    if (hasMilkway) {
-        vec3 milkwayTex = texture2D(milkway, vViewDir.xy * 4.0).rgb;
-        milkwayTex += vec3(0.108, 0.386, 1.0) * texture2D(sparkle, vViewDir.xy * sparkleTiling).r;
+#ifdef HAS_MILKWAY
+    vec2 time = vec2(time == 0.0 ? 1.0 : time * sparkTimeSpeed);
 
-        if (shouldGlowRed)
-            milkwayTex += vec3(1.0, 0.0, 0.18) * clamp(pow(facing, 2.05333) * 0.81636, 0.0, 1.0);
+    vec3 milkwayTex = texture2D(milkway, vViewDir.xy * 4.0 * time).rgb;
+    milkwayTex += vec3(0.108, 0.386, 1.0) * texture2D(sparkle, vViewDir.xy * sparkleTiling * time).r;
 
-        if (isDeniaChest || texture2D(milkwayMask, vUv).g > 0.5) {
-            gl_FragColor = vec4(baseColor + milkwayTex, 1.0);
-            return;
-        }
+    if (shouldGlowRed)
+        milkwayTex += vec3(1.0, 0.0, 0.18) * clamp(pow(facing, 2.05333) * 0.81636, 0.0, 1.0);
+
+    if (isDeniaChest || texture2D(milkwayMask, vUv).g > 0.5) {
+        gl_FragColor = vec4(baseColor + milkwayTex, 1.0);
+        return;
     }
+#endif
 
-    // Shadows
     float shadow = 1.0;
-
-    // Uncomment if DirectionalLight.castShadow = true
-    /*
-    DirectionalLightShadow directionalShadow = directionalLightShadows[0];
-
-    shadow = getShadow(
-        directionalShadowMap[0],
-        directionalShadow.shadowMapSize,
-        directionalShadow.shadowBias,
-        directionalShadow.shadowRadius,
-        vDirectionalShadowCoord[0]
-    );
-    */
-
     vec3 lightDir = directionalLights[0].direction;
 
     if (isFace) {
@@ -231,12 +229,20 @@ void main() {
         return;
     }
 
-    if (isEye)
+#ifdef IS_EYE
+    if (useEyeHighlights)
        baseColor += texture2D(eyeHighlight, vUv).r + texture2D(eyeBottomHighlight, vUv).r;
-    else if (isHair)
+#else
+    if (isHair)
        baseColor += min(texture2D(hairHM, vUv).r * directionalLight, hairShine);
+#endif
 
     vec3 color = baseColor * finalLighting;
+
+#ifdef IS_EYE
+       vec2 eyeUv = vUv - vec2(dot(vViewDir, vTangent), dot(vViewDir, vBitangent)) * eyeDepth;
+       color = max(color, baseColor * texture2D(base, mix(eyeUv, vUv, texture2D(eyeEm, vUv).g)).rgb);
+#endif
 
     // Color Grading
     color *= exposure;
@@ -253,14 +259,14 @@ void main() {
         return;
     }
 
-    if (hasFX) {
-        float stars = texture2D(fx, vUv * 4.0).r * texture2D(fx, vUv).a;
+#ifdef HAS_FX
+    float stars = texture2D(fx, vUv * 4.0).r * texture2D(fx, vUv).a;
 
-        if (invSparkleTiling > 0.0)
-            color += texture2D(sparkle, vViewDir.xy * abs(vViewPos.z) * invSparkleTiling).r * step(0.05, stars) * 2.0;
-        else
-            color += stars;
-    }
+    if (invSparkleTiling > 0.0)
+        color += texture2D(sparkle, vViewDir.xy * abs(vViewPos.z) * invSparkleTiling + vec2(time * sparkTimeSpeed)).r * step(0.05, stars) * 2.0;
+    else
+        color += stars;
+#endif
 
     gl_FragColor = vec4(color, 1.0);
 }

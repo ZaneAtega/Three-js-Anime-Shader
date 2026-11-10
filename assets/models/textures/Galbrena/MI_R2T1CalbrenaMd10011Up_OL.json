@@ -1,0 +1,70 @@
+{
+  "BlendMode": 0,
+  "ShadingModel": 0,
+  "Textures": {
+    "MainTex": {
+      "ObjectName": "Texture2D'T_R2T1CalbrenaMd10011Up_D'",
+      "ObjectPath": "Client/Content/Aki/Character/Role/FemaleXL/Jiabeilina/R2T1CalbrenaMd10011/Model/T_R2T1CalbrenaMd10011Up_D.1"
+    },
+    "PM_Diffuse": {
+      "ObjectName": "Texture2D'T_R2T1CalbrenaMd10011Up_D'",
+      "ObjectPath": "Client/Content/Aki/Character/Role/FemaleXL/Jiabeilina/R2T1CalbrenaMd10011/Model/T_R2T1CalbrenaMd10011Up_D.1"
+    },
+    "T_R2T1CalbrenaMd10011Up_D": {
+      "ObjectName": "Texture2D'T_R2T1CalbrenaMd10011Up_D'",
+      "ObjectPath": "Client/Content/Aki/Character/Role/FemaleXL/Jiabeilina/R2T1CalbrenaMd10011/Model/T_R2T1CalbrenaMd10011Up_D.1"
+    }
+  },
+  "Colors": {
+    "OutlineColor": {
+      "R": 0.1125,
+      "G": 0.1125,
+      "B": 0.1125,
+      "A": 1.0,
+      "Hex": "5E5E5E"
+    },
+    "OutlineColorTint": {
+      "R": 0.351562,
+      "G": 0.328125,
+      "B": 0.375,
+      "A": 0.0,
+      "Hex": "A09BA5"
+    }
+  },
+  "Scalars": {
+    "InnerOutlineMulti": 500.0,
+    "InnerOutlineOffset": 0.5,
+    "OutlineClipWidth": 1.5,
+    "OutlineHoldDistance": 1.5,
+    "MaxOutlineWidth": 0.48,
+    "RefractionDepthBias": 0.0
+  },
+  "Switches": {
+    "UseMainTex": true,
+    "UseVertexColorB_InnerOutline": true,
+    "UseVertexGreen_OutlineWidth": true
+  },
+  "Properties": {
+    "bHasStaticPermutationResource": true,
+    "BasePropertyOverrides": {
+      "bOverride_TwoSided": true,
+      "bEnableAdaptiveTessellation": true,
+      "ShadingModel": "MSM_ToonOutline",
+      "OpacityMaskClipValue": 0.3333,
+      "RenderQueue": 250,
+      "bCastRayTracedShadows": true,
+      "bIsOnlyForSkeletalMesh": true,
+      "bDisableCastDynamicShadows": true,
+      "bUsedWithSkeletalMesh": true,
+      "bUsedWithMorphTargets": true,
+      "bIsBackFace": true,
+      "bUseFullPrecision": true
+    }
+  },
+  "HasTopDiffuse": true,
+  "HasTopNormals": false,
+  "HasTopSpecularMasks": false,
+  "HasTopEmissive": false,
+  "IsTranslucent": false,
+  "IsNull": false
+}

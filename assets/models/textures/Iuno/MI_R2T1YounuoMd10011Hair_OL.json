@@ -1,0 +1,70 @@
+{
+  "BlendMode": 0,
+  "ShadingModel": 0,
+  "Textures": {
+    "MainTex": {
+      "ObjectName": "Texture2D'T_R2T1YounuoMd10011Hair_D'",
+      "ObjectPath": "Client/Content/Aki/Character/Role/FemaleM/Younuo/R2T1YounuoMd10011/Model/T_R2T1YounuoMd10011Hair_D.1"
+    },
+    "PM_Diffuse": {
+      "ObjectName": "Texture2D'T_R2T1YounuoMd10011Hair_D'",
+      "ObjectPath": "Client/Content/Aki/Character/Role/FemaleM/Younuo/R2T1YounuoMd10011/Model/T_R2T1YounuoMd10011Hair_D.1"
+    },
+    "T_R2T1YounuoMd10011Hair_D": {
+      "ObjectName": "Texture2D'T_R2T1YounuoMd10011Hair_D'",
+      "ObjectPath": "Client/Content/Aki/Character/Role/FemaleM/Younuo/R2T1YounuoMd10011/Model/T_R2T1YounuoMd10011Hair_D.1"
+    }
+  },
+  "Colors": {
+    "OutlineColor": {
+      "R": 0.142269,
+      "G": 0.139824,
+      "B": 0.197917,
+      "A": 1.0,
+      "Hex": "69687B"
+    },
+    "OutlineColorTint": {
+      "R": 0.575,
+      "G": 0.575,
+      "B": 0.575,
+      "A": 0.0,
+      "Hex": "C8C8C8"
+    }
+  },
+  "Scalars": {
+    "MinWidth": 0.03,
+    "OutlineWidth": 0.14,
+    "CurvatureMin": 0.0,
+    "OutlineClipWidth": 1.2,
+    "OutlineHoldDistance": 2.5,
+    "RefractionDepthBias": 0.0
+  },
+  "Switches": {
+    "UseMainTex": true,
+    "UseVertexColorB_InnerOutline": true,
+    "UseVertexGreen_OutlineWidth": true
+  },
+  "Properties": {
+    "bHasStaticPermutationResource": true,
+    "BasePropertyOverrides": {
+      "bOverride_TwoSided": true,
+      "bEnableAdaptiveTessellation": true,
+      "ShadingModel": "MSM_ToonOutline",
+      "OpacityMaskClipValue": 0.3333,
+      "RenderQueue": 250,
+      "bCastRayTracedShadows": true,
+      "bIsOnlyForSkeletalMesh": true,
+      "bDisableCastDynamicShadows": true,
+      "bUsedWithSkeletalMesh": true,
+      "bUsedWithMorphTargets": true,
+      "bIsBackFace": true,
+      "bUseFullPrecision": true
+    }
+  },
+  "HasTopDiffuse": true,
+  "HasTopNormals": false,
+  "HasTopSpecularMasks": false,
+  "HasTopEmissive": false,
+  "IsTranslucent": false,
+  "IsNull": false
+}

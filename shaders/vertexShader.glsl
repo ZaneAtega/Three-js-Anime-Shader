@@ -1,6 +1,5 @@
 #include <common>
 #include <skinning_pars_vertex>
-// #include <shadowmap_pars_vertex>
 #include <morphtarget_pars_vertex>
 
 uniform int morphTextureStride; // geometry.morphAttributes - position: 1, normal: 2, color: 3
@@ -48,8 +47,6 @@ void main() {
 	#include <skinbase_vertex>
 	#include <skinnormal_vertex>
 	#include <skinning_vertex>
-
-	// #include <shadowmap_vertex>
 
 	vUv = uv;
 	vUv2 = uv2;
