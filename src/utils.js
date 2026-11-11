@@ -46,7 +46,7 @@ function setupThree(instance) {
     instance.scene = scene;
 }
 
-function loadTex(url, colorSpace = THREE.SRGBColorSpace) {
+function loadTex(url, colorSpace = THREE.SRGBColorSpace, flipY = true) {
     return new Promise((resolve) => {
         new THREE.TextureLoader().load(
             url,
@@ -62,7 +62,7 @@ function loadTex(url, colorSpace = THREE.SRGBColorSpace) {
                 }
 
                 tex.anisotropy = maxAnisotropy;
-                tex.flipY = !url.endsWith("_Skin.png");
+                tex.flipY = url.endsWith("_Skin.png") ? false : flipY;
                 resolve(tex);
             },
             undefined,
@@ -172,7 +172,51 @@ const ApplyMats = (instance) => {
         return paletteIndex;
     };
 
+
+    function setBandUniforms(uniforms, scalars) {
+        const getBandVector = (property, fallback) => [0, 1, 2].map(i => scalars[`${i}_${property}`] ?? fallback);
+
+        uniforms.bandFlow = { value: getBandVector("FlowMin", 0.0) };
+        uniforms.bandEdge = { value: getBandVector("EdgeLift", 0.0) };
+        uniforms.bandPos = { value: getBandVector("Position", 0.5) };
+
+        uniforms.bandArea = { value: getBandVector("ScaleArea", 0.0) };
+        uniforms.bandScale = { value: getBandVector("Scale", 1.0) };
+
+        uniforms.bandTiling = { value: [
+            scalars["1_TilingU"] ?? 1.0,
+            scalars["1_OffsetU"] ?? 0.0,
+            scalars["1_Intensity"] ?? 0.0,
+            scalars["2_TilingU"] ?? 1.0,
+            scalars["2_OffsetU"] ?? 0.0,
+            scalars["2_Intensity"] ?? 0.0
+        ]};
+
+        uniforms.bandWidth = { value: getBandVector("Width", 0.2) };
+        uniforms.bandMute = { value: getBandVector("UseMiddleMute", 0.0) };
+        uniforms.bandDown = { value: getBandVector("NoiseDownIntensity", 0.0) };
+        uniforms.bandUp = { value: getBandVector("NoiseUpIntensity", 0.0) };
+        uniforms.bandNoiseOffset = { value: getBandVector("UseNoiseOffset", 0.0) };
+        uniforms.bandUseNoise = { value: getBandVector("UseNoise", 1.0) };
+
+        uniforms.bandMask = { value: getBandVector("HairMaskChannel", 0.0) };
+        uniforms.bandHidden = { value: getBandVector("HairRimHiddenChannel", 0.0) };
+
+        uniforms.bandDark = { value: getBandVector("HighlightColorIntensity_Dark", 1.0) };
+        uniforms.bandBright = { value: getBandVector("HighlightColorIntensity", 1.0) };
+
+        uniforms.bandAdd = { value: scalars.UseAdd ?? 0.0 };
+    }
+
     const getColor = (c, fallback = null) => c ? [c.R, c.G, c.B] : fallback;
+
+    const getAvgColor = (d, n) => {
+        return d && n ? [
+            (d.R + n.R) / 2,
+            (d.G + n.G) / 2,
+            (d.B + n.B) / 2
+        ] : d ? [d.R, d.G, d.B] : n ? [n.R, n.G, n.B] : null;
+    };
 
     async function applyPartDefinesUniforms(part, texPrefix, matData, defines, uniforms) {
         const { Scalars: scalars = {}, Colors: colors = {}, Switches: switches = {}, Textures: textures = {} } = matData;
@@ -180,9 +224,11 @@ const ApplyMats = (instance) => {
         switch (part) {
             case "Face":
                 defines.IS_FACE = true;
+
                 uniforms.eyebrowsHet = { value: await loadTex(`${texPrefix}_EyebrowsHET.png`, false) };
                 uniforms.faceSdf = { value: await loadTex(`${instance.TEXTURES_PATH}T_FemaleMFace01_SDF.png`, false) };
                 uniforms.outlineMask = { value: await loadTex(`${instance.TEXTURES_PATH}Face_OutlineMask.png`, false) };
+
                 break;
             case "Eye":
                 defines.IS_EYE = true;
@@ -200,18 +246,55 @@ const ApplyMats = (instance) => {
                 break;
             case "Hair":
             case "Bangs":
-                uniforms.isHair = { value: true };
-
-                uniforms.hairHm = {
-                    value: await loadTex(`${instance.TEXTURES_PATH}${instance.charName}/${instance.activeChar.texPrefix}${part}_HM.png`, false)
-                };
-
-                uniforms.hairShine = { value: instance.activeChar.hairShine };
+                defines.IS_HAIR = true;
+                uniforms.useMainTexA = { value: switches.UseMainTexA > 0.5 };
+                uniforms.hairHm = { value: await loadTex(`${texPrefix}_HM.png`, false) };
+                texPrefix = texPrefix.replace(part, "");
 
                 if (instance.activeChar.outlineHbi !== undefined) {
                     uniforms.outlineBurnIntensity = { value: instance.activeChar.outlineHbi };
                     // uniforms.outlineMaxBrightness = { value: 1.0 };
                 }
+
+                if (part !== "Bangs") {
+                    uniforms.hasRamp = { value: false };
+                    break;
+                }
+
+                uniforms.ramp = { value: await loadTex(`${texPrefix}_Skin.png`) };
+                uniforms.hasRamp = { value: !!uniforms.ramp.value };
+                if (!uniforms.hasRamp) break;
+
+                uniforms.hairShadow = { value: [
+                    scalars.ShadowProcess ?? 0.7,
+                    scalars.ShadowWidth ?? 0.05,
+                    scalars.SolidShadow_RampPosition ?? 0.4
+                ]};
+
+                uniforms.hairOffset = { value: [
+                    scalars.MaskShadowOffsetStrength ?? 0.0,
+                    scalars.ShadowOffsetAdjustFactor ?? 1.0,
+                    scalars.ShadowOffsetPower ?? 1.0
+                ]};
+
+                uniforms.hairSolid = { value: [
+                    scalars.SolidShadowProcess ?? 0.5,
+                    scalars.SolidShadowWidth ?? 0.8
+                ]};
+
+                uniforms.hasBands = { value: false };
+
+                for (const [band, path] of Object.entries({
+                    bandUv: `${texPrefix}Bangs_HN.png`,
+                    bandNoise: `${instance.TEXTURES_PATH}T_HairNoise_M.png`,
+                    bandRamp: `${texPrefix}Hair_HR.png`
+                })) {
+                    uniforms[band] = { value: await loadTex(path, false, band !== "bandRamp") };
+                    if (!uniforms[band].value) return;
+                }
+
+                uniforms.hasBands.value = true;
+                setBandUniforms(uniforms, scalars);
 
                 break;
             case "Fur":
@@ -228,9 +311,9 @@ const ApplyMats = (instance) => {
                         break;
                     case "Denia":
                     case "Denia_2":
-                        uniforms.ftm = { value: await loadTex(`${texPrefix}_FTM.png`) };
+                        uniforms.ftm = { value: await loadTex(`${texPrefix}_FTM.png`, false) };
                     default:
-                        uniforms.nrm = { value: await loadTex(`${texPrefix}_N.png`) };
+                        uniforms.nrm = { value: await loadTex(`${texPrefix}_N.png`, false) };
                 }
                 break;
         }
@@ -275,7 +358,7 @@ const ApplyMats = (instance) => {
                         uniforms.gCutoff = { value: 0.55 }; // 0.825
                         break;
                     case "Cloth":
-                        uniforms.outlineMask = { value: await loadTex(`${texPrefix}_OutlineMask.png`) };
+                        uniforms.outlineMask = { value: await loadTex(`${texPrefix}_OutlineMask.png`, false) };
                         defines.HAS_MILKWAY = true;
                         uniforms.sparkleTiling = { value: 10.0 };
                         break;

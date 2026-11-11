@@ -21,9 +21,6 @@ export const config = {
         saturation: { value: 1.0 }, // Set this to a high value while tuning the two above
         hairSaturation: { value: 1.0 },
 
-        isFace: { value: false },
-        isHair: { value: false },
-
         time: { value: 0.0 },
         sparkTimeSpeed: { value: -0.05 },
         starTiling: { value: 4.0 },
