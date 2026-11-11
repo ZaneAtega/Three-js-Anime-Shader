@@ -1,0 +1,78 @@
+{
+  "BlendMode": 0,
+  "ShadingModel": 0,
+  "Textures": {
+    "MainTex": {
+      "ObjectName": "Texture2D'T_R2T1DaniyaMd10011Bangs02_D'",
+      "ObjectPath": "Client/Content/Aki/Character/Role/FemaleMS/Daniya/R2T1DaniyaMd10011/Model/T_R2T1DaniyaMd10011Bangs02_D.1"
+    },
+    "PM_Diffuse": {
+      "ObjectName": "Texture2D'T_R2T1DaniyaMd10011Bangs02_D'",
+      "ObjectPath": "Client/Content/Aki/Character/Role/FemaleMS/Daniya/R2T1DaniyaMd10011/Model/T_R2T1DaniyaMd10011Bangs02_D.1"
+    },
+    "T_R2T1DaniyaMd10011Bangs02_D": {
+      "ObjectName": "Texture2D'T_R2T1DaniyaMd10011Bangs02_D'",
+      "ObjectPath": "Client/Content/Aki/Character/Role/FemaleMS/Daniya/R2T1DaniyaMd10011/Model/T_R2T1DaniyaMd10011Bangs02_D.1"
+    }
+  },
+  "Colors": {
+    "BaseColorTint": {
+      "R": 1.0,
+      "G": 1.0,
+      "B": 1.0,
+      "A": 1.0,
+      "Hex": "FFFFFF"
+    },
+    "OutlineColor": {
+      "R": 0.255208,
+      "G": 0.120958,
+      "B": 0.166625,
+      "A": 1.0,
+      "Hex": "8A6171"
+    },
+    "OutlineColorTint": {
+      "R": 0.760417,
+      "G": 0.562391,
+      "B": 0.678934,
+      "A": 0.0,
+      "Hex": "E2C6D7"
+    }
+  },
+  "Scalars": {
+    "MinWidth": 0.03,
+    "OutlineWidth": 0.14,
+    "InnerOutlineMulti": 400.0,
+    "InnerOutlineOffset": 0.5,
+    "OutlineClipWidth": 2.0,
+    "OutlineHoldDistance": 2.3,
+    "RefractionDepthBias": 0.0
+  },
+  "Switches": {
+    "UseMainTex": true,
+    "UseCurvature": true,
+    "UseVertexColorB_InnerOutline": true,
+    "UseVertexGreen_OutlineWidth": true
+  },
+  "Properties": {
+    "bHasStaticPermutationResource": true,
+    "BasePropertyOverrides": {
+      "bEnableAdaptiveTessellation": true,
+      "ShadingModel": "MSM_ToonOutline",
+      "OpacityMaskClipValue": 0.3333,
+      "RenderQueue": 250,
+      "bCastRayTracedShadows": true,
+      "bIsOnlyForSkeletalMesh": true,
+      "bDisableCastDynamicShadows": true,
+      "bUsedWithSkeletalMesh": true,
+      "bUsedWithMorphTargets": true,
+      "bIsBackFace": true,
+      "bUseFullPrecision": true
+    }
+  },
+  "HasTopDiffuse": true,
+  "HasTopNormals": false,
+  "HasTopSpecularMasks": false,
+  "HasTopEmissive": false,
+  "IsTranslucent": false,
+  "IsNull": false
+}

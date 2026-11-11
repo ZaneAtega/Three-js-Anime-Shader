@@ -38,20 +38,21 @@ uniform sampler2D outlineMask;
 uniform bool hasOutlineMask;
 
 uniform sampler2D nrm;
-uniform bool hasNRM;
-
-uniform sampler2D faceSDF;
-uniform sampler2D het;
-uniform bool isFace;
+uniform bool hasNrm;
 
 uniform sampler2D metallicMatCap;
 uniform sampler2D ftm;
-uniform bool hasFTM;
+uniform bool hasFtm;
 
-uniform sampler2D hairHM;
+uniform sampler2D hairHm;
 uniform bool isHair;
 
-#ifdef IS_EYE
+#ifdef IS_FACE
+
+uniform sampler2D eyebrowsHet;
+uniform sampler2D faceSdf;
+
+#elif defined(IS_EYE)
 
 uniform bool useEyeHighlights;
 uniform sampler2D eyeHighlight;
@@ -68,6 +69,9 @@ uniform float eyeDepth;
 uniform sampler2D sparkle;
 uniform float time;
 uniform float sparkTimeSpeed;
+uniform float starTiling;
+uniform float invStarTiling;
+uniform float invSparkleTiling;
 #endif
 
 #ifdef HAS_MILKWAY
@@ -80,7 +84,7 @@ uniform float sparkleTiling;
 
 #ifdef HAS_FX
 uniform sampler2D fx;
-uniform float invSparkleTiling;
+uniform bool addStars;
 #endif
 
 /* --- */
@@ -101,7 +105,11 @@ vec3 adjustSat(vec3 color, float sat) { return mix(vec3(dot(color, LUM)), color,
 float GTTonemap(float x);
 
 void main() {
-    gl_FragDepth = gl_FragCoord.z - float(isFace && texture2D(het, vUv).r > 0.5) * 0.2;
+#ifdef IS_FACE
+    gl_FragDepth = gl_FragCoord.z - float(texture2D(eyebrowsHet, vUv).r > 0.5) * 0.2;
+#else
+    gl_FragDepth = gl_FragCoord.z;
+#endif
 
     vec4 baseTex = texture2D(base, isFur ? vUv2 : vUv);
     vec3 baseColor = baseTex.rgb;
@@ -115,7 +123,7 @@ void main() {
     vec3 normal = vNormal;
     float isMetallic = 0.0;
 
-    if (hasNRM) {
+    if (hasNrm) {
         vec4 nrm = texture2D(nrm, vUv);
 
         // This is correct but UV seams are visible :(
@@ -134,11 +142,13 @@ void main() {
     float NdotV = dot(normal, vViewDir);
     float facing = 1.0 - max(NdotV, 0.0);
 
-#ifdef HAS_MILKWAY
+#if defined(HAS_MILKWAY) || defined(HAS_FX)
     vec2 time = vec2(time == 0.0 ? 1.0 : time * sparkTimeSpeed);
+#endif
 
-    vec3 milkwayTex = texture2D(milkway, vViewDir.xy * 4.0 * time).rgb;
-    milkwayTex += vec3(0.108, 0.386, 1.0) * texture2D(sparkle, vViewDir.xy * sparkleTiling * time).r;
+#ifdef HAS_MILKWAY
+    vec3 milkwayTex = texture2D(milkway, vViewDir.xy * starTiling + invStarTiling * time).rgb;
+    milkwayTex += vec3(0.108, 0.386, 1.0) * texture2D(sparkle, vViewDir.xy * sparkleTiling + invSparkleTiling * time).r;
 
     if (shouldGlowRed)
         milkwayTex += vec3(1.0, 0.0, 0.18) * clamp(pow(facing, 2.05333) * 0.81636, 0.0, 1.0);
@@ -152,20 +162,20 @@ void main() {
     float shadow = 1.0;
     vec3 lightDir = directionalLights[0].direction;
 
-    if (isFace) {
-        vec3 right = normalize(cross(vec3(0.0, 1.0, 0.0), normal));
-        float RdotL = dot(right.xy, lightDir.xy);
+#ifdef IS_FACE
+    vec3 right = normalize(cross(vec3(0.0, 1.0, 0.0), normal));
+    float RdotL = dot(right.xy, lightDir.xy);
 
-        float faceShadow = mix(
-            texture2D(faceSDF, vec2(1.0 - vUv.x, vUv.y)).r,
-            texture2D(faceSDF, vUv).r,
-            step(0.5, RdotL * 0.5 + 0.5)
-        );
+    float faceShadow = mix(
+        texture2D(faceSdf, vec2(1.0 - vUv.x, vUv.y)).r,
+        texture2D(faceSdf, vUv).r,
+        step(0.5, RdotL * 0.5 + 0.5)
+    );
 
-        float angle = acos(RdotL) / PI * 2.0;
-        angle = mix(angle - 1.0, 1.0 - angle, step(0.0, RdotL));
-        shadow = min(shadow, step(angle, faceShadow));
-    }
+    float angle = acos(RdotL) / PI * 2.0;
+    angle = mix(angle - 1.0, 1.0 - angle, step(0.0, RdotL));
+    shadow = min(shadow, step(angle, faceShadow));
+#endif
 
     // Directional Light
     float NdotL = max(dot(normal, lightDir), 0.0);
@@ -193,7 +203,7 @@ void main() {
     finalLighting *= mix(vec3(1.0), adjustSat(shadowTint, tintStrength), 1.0 - lightIntensity);
 
     // Metallic
-    if (hasFTM) {
+    if (hasFtm) {
         float ftmG = texture2D(ftm, vUv).g;
         isMetallic = min(isMetallic + ftmG * step(0.667, ftmG), 1.0);
     }
@@ -234,7 +244,7 @@ void main() {
        baseColor += texture2D(eyeHighlight, vUv).r + texture2D(eyeBottomHighlight, vUv).r;
 #else
     if (isHair)
-       baseColor += min(texture2D(hairHM, vUv).r * directionalLight, hairShine);
+       baseColor += min(texture2D(hairHm, vUv).r * directionalLight, hairShine);
 #endif
 
     vec3 color = baseColor * finalLighting;
@@ -260,12 +270,13 @@ void main() {
     }
 
 #ifdef HAS_FX
-    float stars = texture2D(fx, vUv * 4.0).r * texture2D(fx, vUv).a;
-
-    if (invSparkleTiling > 0.0)
-        color += texture2D(sparkle, vViewDir.xy * abs(vViewPos.z) * invSparkleTiling + vec2(time * sparkTimeSpeed)).r * step(0.05, stars) * 2.0;
-    else
-        color += stars;
+    if (addStars) {
+        color += texture2D(fx, vUv * starTiling + invStarTiling * time).r * texture2D(fx, vUv).a;
+    } else {
+        float stars = texture2D(fx, vUv * starTiling).r * texture2D(fx, vUv).a;
+        vec2 sparkleUv = vViewDir.xy * abs(vViewPos.z) * invSparkleTiling + invSparkleTiling * time;
+        color += texture2D(sparkle, sparkleUv).r * step(0.05, stars) * 2.0;
+    }
 #endif
 
     gl_FragColor = vec4(color, 1.0);

@@ -1,0 +1,339 @@
+{
+  "BlendMode": 1,
+  "ShadingModel": 0,
+  "Textures": {
+    "MainTex": {
+      "ObjectName": "Texture2D'T_R2T1DaniyaMd10011Cloth_D'",
+      "ObjectPath": "Client/Content/Aki/Character/Role/FemaleMS/Daniya/R2T1DaniyaMd10011/Model/T_R2T1DaniyaMd10011Cloth_D.1"
+    },
+    "PM_Diffuse": {
+      "ObjectName": "Texture2D'T_R2T1DaniyaMd10011Cloth_D'",
+      "ObjectPath": "Client/Content/Aki/Character/Role/FemaleMS/Daniya/R2T1DaniyaMd10011/Model/T_R2T1DaniyaMd10011Cloth_D.1"
+    },
+    "T_R2T1DaniyaMd10011Cloth_D": {
+      "ObjectName": "Texture2D'T_R2T1DaniyaMd10011Cloth_D'",
+      "ObjectPath": "Client/Content/Aki/Character/Role/FemaleMS/Daniya/R2T1DaniyaMd10011/Model/T_R2T1DaniyaMd10011Cloth_D.1"
+    },
+    "TypeMask": {
+      "ObjectName": "Texture2D'T_R2T1DaniyaMd10011Cloth_FTM'",
+      "ObjectPath": "Client/Content/Aki/Character/Role/FemaleMS/Daniya/R2T1DaniyaMd10011/Model/T_R2T1DaniyaMd10011Cloth_FTM.0"
+    },
+    "T_R2T1DaniyaMd10011Cloth_FTM": {
+      "ObjectName": "Texture2D'T_R2T1DaniyaMd10011Cloth_FTM'",
+      "ObjectPath": "Client/Content/Aki/Character/Role/FemaleMS/Daniya/R2T1DaniyaMd10011/Model/T_R2T1DaniyaMd10011Cloth_FTM.0"
+    },
+    "RegionIDTex": {
+      "ObjectName": "Texture2D'T_R2T1DaniyaMd10011Cloth_RGID'",
+      "ObjectPath": "Client/Content/Aki/Character/Role/FemaleMS/Daniya/R2T1DaniyaMd10011/Model/T_R2T1DaniyaMd10011Cloth_RGID.0"
+    },
+    "T_R2T1DaniyaMd10011Cloth_RGID": {
+      "ObjectName": "Texture2D'T_R2T1DaniyaMd10011Cloth_RGID'",
+      "ObjectPath": "Client/Content/Aki/Character/Role/FemaleMS/Daniya/R2T1DaniyaMd10011/Model/T_R2T1DaniyaMd10011Cloth_RGID.0"
+    },
+    "Ramp": {
+      "ObjectName": "Texture2D'T_R2T1DaniyaMd10011_Skin'",
+      "ObjectPath": "Client/Content/Aki/Character/Role/FemaleMS/Daniya/R2T1DaniyaMd10011/Model/T_R2T1DaniyaMd10011_Skin.0"
+    },
+    "T_R2T1DaniyaMd10011_Skin": {
+      "ObjectName": "Texture2D'T_R2T1DaniyaMd10011_Skin'",
+      "ObjectPath": "Client/Content/Aki/Character/Role/FemaleMS/Daniya/R2T1DaniyaMd10011/Model/T_R2T1DaniyaMd10011_Skin.0"
+    },
+    "PM_Normals": {
+      "ObjectName": "Texture2D'T_Normal_Flowmap_40001_N'",
+      "ObjectPath": "Client/Content/Aki/Character/Role/FemaleMS/Daniya/R2T1DaniyaMd10011/Model/T_Normal_Flowmap_40001_N.1"
+    },
+    "Normal_Roughness_Metallic": {
+      "ObjectName": "Texture2D'T_R2T1DaniyaMd10011Cloth_N'",
+      "ObjectPath": "Client/Content/Aki/Character/Role/FemaleMS/Daniya/R2T1DaniyaMd10011/Model/T_R2T1DaniyaMd10011Cloth_N.1"
+    },
+    "CommonNoiseMap": {
+      "ObjectName": "Texture2D'T_Sparkle_SDF'",
+      "ObjectPath": "Client/Content/Aki/Character/Role/CommonTexture/Sparkle/T_Sparkle_SDF.0"
+    },
+    "T_Sparkle_SDF": {
+      "ObjectName": "Texture2D'T_Sparkle_SDF'",
+      "ObjectPath": "Client/Content/Aki/Character/Role/CommonTexture/Sparkle/T_Sparkle_SDF.0"
+    },
+    "FlowmapMap": {
+      "ObjectName": "Texture2D'T_Normal_Flowmap_40001_N'",
+      "ObjectPath": "Client/Content/Aki/Character/Role/FemaleMS/Daniya/R2T1DaniyaMd10011/Model/T_Normal_Flowmap_40001_N.1"
+    },
+    "T_Normal_Flowmap_40001_N": {
+      "ObjectName": "Texture2D'T_Normal_Flowmap_40001_N'",
+      "ObjectPath": "Client/Content/Aki/Character/Role/FemaleMS/Daniya/R2T1DaniyaMd10011/Model/T_Normal_Flowmap_40001_N.1"
+    },
+    "R_Noise_A_Mask": {
+      "ObjectName": "Texture2D'T_R2T1DaniyaMd10011Cloth_FX'",
+      "ObjectPath": "Client/Content/Aki/Character/Role/FemaleMS/Daniya/R2T1DaniyaMd10011/Model/T_R2T1DaniyaMd10011Cloth_FX.0"
+    },
+    "T_R2T1DaniyaMd10011Cloth_FX": {
+      "ObjectName": "Texture2D'T_R2T1DaniyaMd10011Cloth_FX'",
+      "ObjectPath": "Client/Content/Aki/Character/Role/FemaleMS/Daniya/R2T1DaniyaMd10011/Model/T_R2T1DaniyaMd10011Cloth_FX.0"
+    },
+    "Second_RGB": {
+      "ObjectName": "Texture2D'T_Wenli_230046'",
+      "ObjectPath": "Client/Content/Aki/Effect/Texture/Wenli/T_Wenli_230046.1"
+    },
+    "T_Wenli_230046": {
+      "ObjectName": "Texture2D'T_Wenli_230046'",
+      "ObjectPath": "Client/Content/Aki/Effect/Texture/Wenli/T_Wenli_230046.1"
+    }
+  },
+  "Colors": {
+    "SubsurfaceColor": {
+      "R": 0.36,
+      "G": 0.35,
+      "B": 0.5,
+      "A": 0.0,
+      "Hex": "A2A0BC"
+    },
+    "EmissionColor": {
+      "R": 0.25,
+      "G": 0.5,
+      "B": 0.5,
+      "A": 0.0,
+      "Hex": "89BCBC"
+    },
+    "Damage_Dirty_ColorTint": {
+      "R": 0.1,
+      "G": 0.08,
+      "B": 0.089,
+      "A": 1.0,
+      "Hex": "595054"
+    },
+    "Damage_Skin_ColorTint": {
+      "R": 0.1,
+      "G": 0.08,
+      "B": 0.06,
+      "A": 1.0,
+      "Hex": "595045"
+    },
+    "MatcapColor": {
+      "R": 1.0,
+      "G": 1.0,
+      "B": 1.0,
+      "A": 1.0,
+      "Hex": "FFFFFF"
+    },
+    "HueShiftValue": {
+      "R": 0.195964,
+      "G": 0.452808,
+      "B": 0.671875,
+      "A": 1.0,
+      "Hex": "7AB4D6"
+    },
+    "0_FresnelColor": {
+      "R": 1.2,
+      "G": 0.72,
+      "B": 0.728,
+      "A": 0.0,
+      "Hex": "FFDDDE"
+    },
+    "TextRain_Color_Base": {
+      "R": 1.0,
+      "G": 1.0,
+      "B": 1.0,
+      "A": 1.0,
+      "Hex": "FFFFFF"
+    },
+    "EffectMaskChannel_Vector": {
+      "R": 2.152098,
+      "G": 1.113585,
+      "B": 0.133333,
+      "A": 0.314286,
+      "Hex": "50FFFF66"
+    },
+    "FresnelRim_RimColor": {
+      "R": 1.71875,
+      "G": 5.848362,
+      "B": 10.0,
+      "A": 1.0,
+      "Hex": "FFFFFF"
+    },
+    "SecondTex_UVSwitch": {
+      "R": 0.761603,
+      "G": 0.0,
+      "B": 2.275027,
+      "A": 0.0,
+      "Hex": "E300FF"
+    },
+    "Second_ScreenObjectUV": {
+      "R": 0.0,
+      "G": 0.0,
+      "B": 1.0,
+      "A": 0.7,
+      "Hex": "B30000FF"
+    },
+    "Second_UV": {
+      "R": 4.0,
+      "G": 2.0,
+      "B": 0.03,
+      "A": 0.02,
+      "Hex": "05FFFF30"
+    },
+    "Second_ColorTint": {
+      "R": 1.2,
+      "G": 1.899999,
+      "B": 4.0,
+      "A": 1.0,
+      "Hex": "FFFFFF"
+    }
+  },
+  "Scalars": {
+    "OpacityIntensity": 1.0,
+    "TranslucentDitherVaule": 0.0,
+    "SolidShadow_RampPosition": 0.4,
+    "CurveRamp": 2.0,
+    "RampIndex": 2.0,
+    "0_RampID": 2.0,
+    "0_RampInt": 0.7,
+    "1_RampID": 2.0,
+    "1_RampInt": 0.5,
+    "2_RampID": 2.0,
+    "2_RampInt": 0.5,
+    "3_RampID": 2.0,
+    "3_RampInt": 0.1,
+    "4_RampID": 2.0,
+    "4_RampInt": 0.5,
+    "RampInt": 1.0,
+    "ShadowWidthUseID": 1.0,
+    "0_ShadowWidth": 0.1,
+    "1_ShadowWidth": 0.5,
+    "2_ShadowWidth": 0.1,
+    "3_ShadowWidth": 0.5,
+    "4_ShadowWidth": 0.1,
+    "ShadowWidth": 1.0,
+    "SolidShadowWidth": 0.8,
+    "SolidShadowProcess": 0.7,
+    "ShadowProcess": 0.6,
+    "EmissionStrength": 1.0,
+    "BreatheFrequency": 1.0,
+    "BreathePropotion": 0.5,
+    "DamageIntensity": 0.0,
+    "Damage_Dirty_Intensity": 1.5,
+    "Damage_Skin_Intensity": 1.0,
+    "NormalStrength": 1.0,
+    "PBRRateIntensity": 1.0,
+    "UseIDMetallicParam": 0.0,
+    "UseIDRoughnessParam": 0.0,
+    "0_Metallic": -0.2,
+    "0_Roughness": 0.2,
+    "0_Spec_Int": 1.0,
+    "0_Spec_Smooth": 1.0,
+    "0_Spec_Width": 0.5,
+    "1_Metallic": -0.1,
+    "1_Roughness": 0.0,
+    "1_Spec_Int": 1.0,
+    "1_Spec_Smooth": 1.0,
+    "1_Spec_Width": 0.5,
+    "2_Metallic": -0.1,
+    "2_Roughness": 0.0,
+    "2_Spec_Int": 1.0,
+    "2_Spec_Smooth": 0.1,
+    "2_Spec_Width": 0.5,
+    "3_Metallic": 0.0,
+    "3_Roughness": 0.0,
+    "3_Spec_Int": 1.0,
+    "3_Spec_Smooth": 1.0,
+    "3_Spec_Width": 0.5,
+    "4_Metallic": 0.0,
+    "4_Roughness": 0.0,
+    "4_Spec_Int": 1.0,
+    "4_Spec_Smooth": 1.0,
+    "4_Spec_Width": 0.5,
+    "NonMetallicMatCapInt": 1.0,
+    "MetalMatCapInt": 4.0,
+    "MetalMatCapBack": 5.0,
+    "ExtraMatcapMax": 4.0,
+    "ExtraMatcapMin": 1.0,
+    "MatcapMaxMip": 5.0,
+    "AnisotropyMax": 0.0,
+    "AnisotropyMin": 0.0,
+    "PBRAnisotropyU": 1.0,
+    "PBRAnisotropyV": 1.0,
+    "SparkleMax": 3.0,
+    "SparkleMin": 3.0,
+    "SparkleTiling": 10.0,
+    "SparkleColorful": 0.02,
+    "SparkleIntensity": 2.0,
+    "SparkleIntensityMax": 2.0,
+    "SparkleStrength(FOV)": 20.0,
+    "step": 0.3,
+    "SparkleTimeSpeed": 0.0,
+    "SparkleRangeMode": 1.0,
+    "SparkleRange": 0.2,
+    "SparkleSoft": 1.0,
+    "UseSparkleFOVStrength": 0.0,
+    "FresnelMax": 0.0,
+    "FresnelMin": 0.0,
+    "FresnelIntensity": 1.5,
+    "0_FresnelRangeMax": 1.0,
+    "0_FresnelRangeMin": 0.5,
+    "0_FresnelRangePower": 0.6,
+    "TextRainMax": 3.0,
+    "TextRainMin": 3.0,
+    "Rain_Intensity": 0.5,
+    "TextRain_Tilling_Base": 100.0,
+    "FurParallaxMax": 3.0,
+    "FurParallaxMin": 3.0,
+    "FlowMapInt": 0.08,
+    "Height": 0.533333,
+    "HeightMapSize": 30.0,
+    "ParallaxRimFadeMax": 1.0,
+    "ParallaxRimFadeMin": 0.0,
+    "UseVertexAMask": 1.0,
+    "FresnelRim_RimRange": 10.0,
+    "Second_UseScreenUV": 0.0,
+    "Second_BumpHeightRadio": 0.5,
+    "RefractionDepthBias": 0.0
+  },
+  "Switches": {
+    "UseTranslucent": true,
+    "UseToonMask": true,
+    "UseMainTexA": true,
+    "UseTypeMask": true,
+    "UseRegionID": true,
+    "DebugID": false,
+    "UseBlendParameter": true,
+    "UseRampColor": true,
+    "UseRampIDMask": true,
+    "UseBreathLight": true,
+    "UseNormalMap": true,
+    "UsePBR": true,
+    "UseDoubleSpecular": true,
+    "UseMatCap": true,
+    "UseHQAnisotropy": true,
+    "UseSparkle": false,
+    "UseFresnel": true,
+    "Use_TextRain": false,
+    "FurMaskUseID": true,
+    "UseFurryParallax": true,
+    "UseEffectMaterial": true,
+    "UseRim": true,
+    "UseSecond": true,
+    "Second_UseObjectScreenUV": true
+  },
+  "Properties": {
+    "bHasStaticPermutationResource": true,
+    "BasePropertyOverrides": {
+      "bOverride_BlendMode": true,
+      "bOverride_TwoSided": true,
+      "TwoSided": true,
+      "bEnableAdaptiveTessellation": true,
+      "BlendMode": "BLEND_Masked",
+      "ShadingModel": "MSM_ToonCommon",
+      "OpacityMaskClipValue": 0.3333,
+      "RenderQueue": 180,
+      "bCastRayTracedShadows": true,
+      "bIsOnlyForSkeletalMesh": true,
+      "bUsedWithSkeletalMesh": true,
+      "bUsedWithMorphTargets": true
+    }
+  },
+  "HasTopDiffuse": true,
+  "HasTopNormals": false,
+  "HasTopSpecularMasks": false,
+  "HasTopEmissive": false,
+  "IsTranslucent": false,
+  "IsNull": false
+}

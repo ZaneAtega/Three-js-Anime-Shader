@@ -1,0 +1,47 @@
+{
+  "BlendMode": 1,
+  "ShadingModel": 0,
+  "Textures": {
+    "MaskTex": {
+      "ObjectName": "Texture2D'T_R2T1DaniyaMd10011Fx_D'",
+      "ObjectPath": "Client/Content/Aki/Character/Role/FemaleMS/Daniya/R2T1DaniyaMd10011/Model/T_R2T1DaniyaMd10011Fx_D.1"
+    },
+    "PM_Diffuse": {
+      "ObjectName": "Texture2D'T_R2T1DaniyaMd10011Fx_D'",
+      "ObjectPath": "Client/Content/Aki/Character/Role/FemaleMS/Daniya/R2T1DaniyaMd10011/Model/T_R2T1DaniyaMd10011Fx_D.1"
+    },
+    "T_R2T1DaniyaMd10011Fx_D": {
+      "ObjectName": "Texture2D'T_R2T1DaniyaMd10011Fx_D'",
+      "ObjectPath": "Client/Content/Aki/Character/Role/FemaleMS/Daniya/R2T1DaniyaMd10011/Model/T_R2T1DaniyaMd10011Fx_D.1"
+    }
+  },
+  "Colors": {},
+  "Scalars": {
+    "EmissiveMul": 1.0,
+    "RefractionDepthBias": 0.0
+  },
+  "Switches": {},
+  "Properties": {
+    "bHasStaticPermutationResource": true,
+    "BasePropertyOverrides": {
+      "bOverride_ShadingModel": true,
+      "bEnableSeparateTranslucency": true,
+      "bEnableAdaptiveTessellation": true,
+      "BlendMode": "BLEND_Masked",
+      "ShadingModel": "MSM_Unlit",
+      "OpacityMaskClipValue": 0.3333,
+      "RenderQueue": 65000,
+      "bCustomAlphaTest": true,
+      "bCastRayTracedShadows": true,
+      "bUsedWithSkeletalMesh": true,
+      "bSupportsUBInstancing": true,
+      "bEffectSpaceWrite": true
+    }
+  },
+  "HasTopDiffuse": false,
+  "HasTopNormals": false,
+  "HasTopSpecularMasks": false,
+  "HasTopEmissive": false,
+  "IsTranslucent": false,
+  "IsNull": false
+}
