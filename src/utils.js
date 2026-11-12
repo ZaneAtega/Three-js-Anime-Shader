@@ -128,11 +128,12 @@ function updatePalette(useThreeMat, palette, meshMats, cMeshMats) {
     if (useThreeMat) return;
 
     palette = {
-        tintStrength: { value: palette.tintStrength },
         lightTint: { value: new THREE.Color(palette.lightTint) },
         rimTint: { value: new THREE.Color(palette.rimTint) },
         ambientTint: { value: new THREE.Color(palette.ambientTint) },
-        shadowTint: { value: new THREE.Color(palette.shadowTint) }
+        shadowTint: { value: new THREE.Color(palette.shadowTint) },
+        tintStrength: { value: palette.tintStrength },
+        isWarmPalette: { value: !palette.isCool }
     };
 
     for (const i in meshMats) {
@@ -168,6 +169,7 @@ const ApplyMats = (instance) => {
             uniforms[tint] = { value: new THREE.Color(palette[tint]) };
 
         uniforms.tintStrength = { value: palette.tintStrength };
+        uniforms.isWarmPalette = { value: !palette.isCool };
 
         return paletteIndex;
     };
@@ -207,7 +209,7 @@ const ApplyMats = (instance) => {
         uniforms.bandAdd = { value: scalars.UseAdd ?? 0.0 };
     }
 
-    const getColor = (c, fallback = null) => c ? [c.R, c.G, c.B] : fallback;
+    const getColor = (c, fallback = [0.0, 0.0, 0.0]) => c ? [c.R, c.G, c.B] : fallback;
 
     const getAvgColor = (d, n) => {
         return d && n ? [
@@ -246,7 +248,6 @@ const ApplyMats = (instance) => {
             case "Hair":
             case "Bangs":
                 defines.IS_HAIR = true;
-                uniforms.useMainTexA = { value: switches.UseMainTexA > 0.5 };
                 uniforms.hairHm = { value: await loadTex(`${texPrefix}_HM.png`, false) };
                 texPrefix = texPrefix.replace(part, "");
 
@@ -262,7 +263,7 @@ const ApplyMats = (instance) => {
 
                 uniforms.ramp = { value: await loadTex(`${texPrefix}_Skin.png`) };
                 uniforms.hasRamp = { value: !!uniforms.ramp.value };
-                if (!uniforms.hasRamp) break;
+                if (!uniforms.hasRamp.value) break;
 
                 uniforms.hairShadow = { value: [
                     scalars.ShadowProcess ?? 0.7,
@@ -322,6 +323,16 @@ const ApplyMats = (instance) => {
 
                 if (uniforms.hasNrm.value)
                     uniforms.metallicMatCap = { value: await loadTex(`${instance.TEXTURES_PATH}CharacterCubeMaps/T_MC_premake_D.png`) }; // 09 // Denia Denia_2 07
+
+                if (uniforms.hasFtm.value) {
+                    uniforms.hasId = { value: false };
+                } else {
+                    uniforms.idMap = { value: await loadTex(`${texPrefix}_ID.png`, false) }; 
+                    uniforms.hasId = { value: !!uniforms.idMap?.value };
+                }
+
+                uniforms.subsurfaceColor = { value: getColor(colors.SubsurfaceColor) }; // [0.3372, 0.3712, 0.5029]
+                uniforms.skinSubsurfaceColor = { value: getColor(colors.SkinSubsurfaceColor) }; // [0.863, 0.46, 0.358] // [0.72, 0.51, 0.46]
 
                 break;
         }
@@ -479,16 +490,12 @@ const ApplyMats = (instance) => {
             fragmentShader: instance.fragmentShader
         });
 
-        switch (part) {
-            case "Cloth":
-            case "Down":
-                mat.fragmentShader = `#define USE_TANGENT_BASIS\n${instance.fragmentShader}`;
-                break;
-            case "Fur":
-                mat.transparent = true;
-                mat.side = THREE.DoubleSide;
-                mat.depthWrite = false;
-                break;
+        if (defines.IS_BODY) {
+            mat.fragmentShader = `#define USE_TANGENT_BASIS\n${instance.fragmentShader}`;
+        } else if (part === "Fur") {
+            mat.transparent = true;
+            mat.side = THREE.DoubleSide;
+            mat.depthWrite = false;
         }
 
         return mat;
@@ -537,6 +544,8 @@ const ApplyMats = (instance) => {
                 }
                 return {};
             })();
+
+            uniforms.useMainTexA = { value: switches.UseMainTexA > 0.5 };
 
             const emissionColor = colors.EmissionColor;
 

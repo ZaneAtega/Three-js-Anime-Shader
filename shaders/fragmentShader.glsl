@@ -9,6 +9,7 @@ uniform vec3 rimTint;
 uniform vec3 ambientTint;
 uniform vec3 shadowTint;
 uniform float tintStrength;
+uniform bool isWarmPalette;
 
 uniform float specularExp;
 uniform float rimLightThreshold;
@@ -38,6 +39,8 @@ uniform bool hasOutlineMask;
 uniform sampler2D nrm;
 uniform bool hasNrm;
 
+uniform bool useMainTexA;
+
 uniform vec3 emissionColor;
 uniform bool hasEmission;
 
@@ -56,8 +59,6 @@ uniform sampler2D eyeHighlight2;
 uniform bool useEyeHighlights;
 
 #else
-
-uniform bool useMainTexA;
 
 uniform sampler2D ramp;
 uniform bool hasRamp;
@@ -105,6 +106,12 @@ uniform float bandAdd;
 uniform sampler2D metallicMatCap;
 uniform sampler2D ftm;
 uniform bool hasFtm;
+
+uniform sampler2D idMap;
+uniform bool hasId;
+
+uniform vec3 subsurfaceColor;
+uniform vec3 skinSubsurfaceColor;
 
 #endif
 
@@ -181,14 +188,13 @@ void main() {
     float isMetallic = 0.0;
 
     if (hasNrm) {
-        // This is correct but UV seams are visible
-        /*
+#ifdef USE_TANGENT_BASIS
         vec3 tangentNormal = vec3(nrm.rg * 2.0 - 1.0, 0.0);
         tangentNormal.z = sqrt(1.0 - dot(tangentNormal.xy, tangentNormal.xy));
 
         mat3 tbn = mat3(vTangent, vBitangent, normal);
         normal = normalize(tbn * tangentNormal);
-        */
+#endif
 
         isMetallic = max(nrm.b * step(0.5, nrm.b), (1.0 - nrm.a) * step(0.425, 1.0 - nrm.a));
     }
@@ -215,7 +221,10 @@ void main() {
 
     vec3 lightDir = directionalLights[0].direction;
     float NdotL = max(dot(normal, lightDir), 0.0);
-    float lightIntensity = NdotL;
+
+    float aoShadow = 1.0 - smoothstep(0.0, 0.2, useMainTexA ? baseTex.a : 0.5);
+    float baseShadow = smootherstep(0.2, 0.0, NdotL * 0.5);
+    float lightIntensity = 1.0 - mix(baseShadow, 1.0, aoShadow);
 
 #ifdef IS_FACE
     vec3 right = normalize(cross(vec3(0.0, 1.0, 0.0), normal));
@@ -229,7 +238,7 @@ void main() {
 
     float angle = acos(RdotL) / PI * 2.0;
     angle = mix(angle - 1.0, 1.0 - angle, step(0.0, RdotL));
-    lightIntensity = NdotL * step(angle, faceShadow);
+    lightIntensity *= step(angle, faceShadow);
 #elif defined(IS_HAIR)
     vec4 hm = texture2D(hairHm, vUv);
 
@@ -248,15 +257,17 @@ void main() {
         float NdotL = dot(normalize(-vTangent + vBitangent + vNormal), lightDir); 
 #endif
 
-        lightIntensity = 1.0 - mix(
-            smootherstep(0.06, 0.0, NdotL * 0.5),
-            1.0,
-            useMainTexA ? 1.0 - smoothstep(0.0, 0.26, baseTex.a) : 0.0
-        );
+        aoShadow = useMainTexA ? 1.0 - smoothstep(0.0, 0.26, baseTex.a) : 0.0;
+        baseShadow = smootherstep(0.06, 0.0, NdotL * 0.5);
+        lightIntensity = 1.0 - mix(baseShadow, 1.0, aoShadow);
     }
 #endif
 
-    vec3 lightColor = directionalLights[0].color * adjustSat(lightTint, tintStrength);
+    float shadow = 1.0 - lightIntensity;
+    vec3 shadowTint = adjustSat(shadowTint, tintStrength);
+
+    vec3 lightTint = adjustSat(lightTint, tintStrength);
+    vec3 lightColor = directionalLights[0].color * lightTint;
     vec3 directionalLight = lightIntensity * lightColor;
 
     // Specular (Blinn-Phong)
@@ -277,9 +288,9 @@ void main() {
     );
     vec4 mc = texture2D(metallicMatCap, r.xy / m + 0.5);
 
-    float ramp = 1.07 + smootherstep(0.3, 1.0, mc.a) * (-2.58 - 1.07) - (1.0 - lightIntensity);
+    float ramp = 1.07 + smootherstep(0.3, 1.0, mc.a) * (-2.58 - 1.07) - shadow;
     float metalSpec = mix(ramp * nrm.a, 1.5, step(0.99, ramp) * (1.0 - nrm.a));
-    metalSpec *= mix(1.0, 0.2, 1.0 - lightIntensity);
+    metalSpec *= mix(1.0, 0.2, shadow);
     spec = mix(spec, metalSpec, isMetallic);
 #endif
 
@@ -296,21 +307,17 @@ void main() {
     // Final Lighting
     vec3 finalLighting = directionalLight + specular + rim;
     finalLighting += ambientLightColor * adjustSat(ambientTint, tintStrength);
-    finalLighting *= mix(vec3(1.0), adjustSat(shadowTint, tintStrength), 1.0 - lightIntensity);
+    finalLighting *= mix(vec3(1.0), shadowTint, shadow);
 
 #ifdef IS_BODY
-    if (hasFtm) {
-        float ftmG = texture2D(ftm, vUv).g;
-        isMetallic = min(isMetallic + ftmG * smootherstep(0.7, 1.0, ftmG), 1.0);
-    }
+    float ftmG = hasFtm ? texture2D(ftm, vUv).g : 0.0;
+    isMetallic = max(isMetallic, smootherstep(0.7, 1.0, ftmG));
 
     if (isMetallic > 0.0) {
         baseColor = mix(baseColor, baseColor * adjustSat(mc.rgb, 0.0).r, isMetallic);
         baseColor *= 1.0 + isMetallic * metallicBrightness;
     }
 #endif
-
-    /* Final Color */
 
     if (isOutline) {
         vec3 outlineColor = mix(vec3(1.0), finalLighting, outlineLightInfluence);
@@ -325,8 +332,7 @@ void main() {
         return;
     }
 
-    vec3 color;
-    bool wasColorModified = false;
+    vec3 color = baseColor;
 
 #ifdef IS_HAIR
     if (hasBands) {
@@ -354,17 +360,26 @@ void main() {
         color = hairBand(baseColor, texture2D(bandRamp, vec2(u.x, 0.125)).rgb, masks.x, light.x);
         color = hairBand(color, texture2D(bandRamp, vec2(u.y, 0.375)).rgb, masks.y, light.y);
         color = hairBand(color, texture2D(bandRamp, vec2(u.z, 0.625)).rgb, masks.z, light.z);
-        wasColorModified = true;
     } else {
         float highlight = clamp(hm.r - lightIntensity, 0.0, 1.0) * smoothstep(0.5, 1.0, NdotV);
 
         // Highlight Old, but its colour is hand-picked per character in the blend: 
         // a fixed near-white turns dark hair into plastic, so the sheen follows the hair colour instead
-        baseColor = mix(baseColor, baseColor * 2.0 + 0.05, clamp(highlight, 0.0, 1.0) * 0.5); // ponytail: 2.0, 0.05 and 0.5 eyeballed
+        color = mix(baseColor, baseColor * 2.0 + 0.05, clamp(highlight, 0.0, 1.0) * 0.5); // ponytail: 2.0, 0.05 and 0.5 eyeballed
     }
+#elif defined(IS_BODY)
+    float notSkin = hasFtm ? step(ftmG, 0.001) : hasId ? texture2D(idMap, vUv).r : 0.0;
+    float sss = (smootherstep(0.25, 0.0, NdotL * 0.5) - baseShadow) * 3.0 - aoShadow - isMetallic;
+    vec3 middleTint = isWarmPalette ? (lightTint + shadowTint) * 0.5 : vec3(1.0);
+
+    if (any(greaterThan(subsurfaceColor, vec3(0.0))))
+        color = mix(baseColor, subsurfaceColor * middleTint, clamp(sss - notSkin, 0.0, 1.0));
+
+    if (any(greaterThan(skinSubsurfaceColor, vec3(0.0))))
+        color = mix(color, skinSubsurfaceColor * middleTint, clamp(sss - (1.0 - notSkin), 0.0, 1.0));
 #endif
 
-    color = (wasColorModified ? color : baseColor) * finalLighting;
+    color *= finalLighting;
 
     if (hasEmission)
         color *= mix(vec3(1.0), emissionColor * 1.1, step(0.8, baseTex.a) * 0.97);

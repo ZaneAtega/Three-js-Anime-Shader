@@ -14,5 +14,5 @@ Just show me what you're making with it! (credits appreciated)
 ## References
 * [Mayacoda](https://www.maya-ndljk.com/blog/threejs-basic-toon-shader) - Vertex & Fragment Shaders Foundation<br>
 * [LoBeyJon - Anime Face Shadow in Unity URP](https://www.youtube.com/watch?v=LKR1ITdOeKM)<br>
-* [encore.moe](https://encore.moe/) Shader - Hair Shading, Specular, Eye UVs<br>
+* [encore.moe](https://encore.moe/) Shader - Hair Shading, Specular, Toon Shadows, Eye UVs<br>
 * [Jonn](https://wheresjonn.gumroad.com/) - Went over his shader in Blender to get a general idea of how Denia's arms and legs worked
