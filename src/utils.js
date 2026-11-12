@@ -172,7 +172,6 @@ const ApplyMats = (instance) => {
         return paletteIndex;
     };
 
-
     function setBandUniforms(uniforms, scalars) {
         const getBandVector = (property, fallback) => [0, 1, 2].map(i => scalars[`${i}_${property}`] ?? fallback);
 
@@ -232,16 +231,16 @@ const ApplyMats = (instance) => {
                 break;
             case "Eye":
                 defines.IS_EYE = true;
+                texPrefix = `${instance.TEXTURES_PATH}Eyes/`;
 
-                uniforms.useEyeHighlights = { value: instance.activeChar.useEyeHighlights !== false };
-
-                if (uniforms.useEyeHighlights.value) {
-                    uniforms.eyeHighlight = { value: await loadTex(`${instance.TEXTURES_PATH}T_Highlight_1.webp`, false) };
-                    uniforms.eyeBottomHighlight = { value: await loadTex(`${instance.TEXTURES_PATH}BottomHighlight_1.webp`, false) };
-                }
-
-                uniforms.eyeEm = { value: await loadTex(`${instance.TEXTURES_PATH}T_HDMF_EM.png`, false) };
+                uniforms.eyeEm = { value: await loadTex(`${texPrefix}T_HDMF_EM.png`, false) };
                 uniforms.eyeDepth = { value: 1.5 * (scalars.ParallaxHeight ?? 0.1) };
+
+                uniforms.useEyeHighlights = { value: instance.charName !== "Denia_2" };
+                if (!uniforms.useEyeHighlights.value) break;
+
+                uniforms.eyeHighlight = { value: await loadTex(`${texPrefix}T_Highlight_1.png`, false) };
+                uniforms.eyeHighlight2 = { value: await loadTex(`${texPrefix}BottomHighlight_1.png`, false) };
 
                 break;
             case "Hair":
@@ -306,6 +305,8 @@ const ApplyMats = (instance) => {
             case "Down":
             case "Cloth":
             case "Alpha":
+                defines.IS_BODY = true;
+
                 switch (instance.charName) {
                     case "Denia_3":
                         break;
@@ -315,12 +316,19 @@ const ApplyMats = (instance) => {
                     default:
                         uniforms.nrm = { value: await loadTex(`${texPrefix}_N.png`, false) };
                 }
+
+                uniforms.hasFtm = { value: !!uniforms.ftm?.value };
+                uniforms.hasNrm = { value: !!uniforms.nrm?.value };
+
+                if (uniforms.hasNrm.value)
+                    uniforms.metallicMatCap = { value: await loadTex(`${instance.TEXTURES_PATH}CharacterCubeMaps/T_MC_premake_D.png`) }; // 09 // Denia Denia_2 07
+
                 break;
         }
     }
 
     async function applyCharDefinesUniforms(part, texPrefix, defines, uniforms) {
-        const mcPrefix = `${instance.TEXTURES_PATH}CharacterCubeMaps/T_MC_premake`;
+        // const mcPrefix = `${instance.TEXTURES_PATH}CharacterCubeMaps/T_MC_premake`;
 
         switch (instance.charName) {
             /*
@@ -408,6 +416,8 @@ const ApplyMats = (instance) => {
 
                 break;
             case "Denia_3":
+                uniforms.time = { value: 1.0 };
+
                 switch (part) {
                     case "Body":
                         uniforms.gCutoff = { value: 0.55 };
@@ -424,6 +434,8 @@ const ApplyMats = (instance) => {
                 }
                 break;
         }
+
+        uniforms.hasOutlineMask = { value: !!uniforms.outlineMask?.value };
     }
 
     async function applyUniformsBasedOnDefines(part, defines, uniforms) {
@@ -526,19 +538,15 @@ const ApplyMats = (instance) => {
                 return {};
             })();
 
+            const emissionColor = colors.EmissionColor;
+
+            if (emissionColor && switches.UseMainTexA && emissionColor.R + emissionColor.G + emissionColor.B > 0)
+                uniforms.emissionColor = { value: [emissionColor.R, emissionColor.G, emissionColor.B] };
+
+            uniforms.hasEmission = { value: !!uniforms.emissionColor?.value };
+
             await applyPartDefinesUniforms(part, texPrefix, matData, defines, uniforms);
             await applyCharDefinesUniforms(part, texPrefix, defines, uniforms);
-
-            if (uniforms.outlineMask) uniforms.hasOutlineMask.value = true;
-            if (uniforms.ftm) uniforms.hasFtm.value = true;
-
-            if (uniforms.nrm) {
-                uniforms.hasNrm.value = true;
-
-                // if (instance.charName === "Denia" || instance.charName === "Denia_2") // 07
-                uniforms.metallicMatCap = { value: await loadTex(`${instance.TEXTURES_PATH}CharacterCubeMaps/T_MC_premake_D.png`) };
-            }
-
             await applyUniformsBasedOnDefines(part, defines, uniforms);
 
             mats.push(createMat(defines, uniforms, part));

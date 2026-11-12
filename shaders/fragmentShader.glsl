@@ -38,9 +38,8 @@ uniform bool hasOutlineMask;
 uniform sampler2D nrm;
 uniform bool hasNrm;
 
-uniform sampler2D metallicMatCap;
-uniform sampler2D ftm;
-uniform bool hasFtm;
+uniform vec3 emissionColor;
+uniform bool hasEmission;
 
 #ifdef IS_FACE
 
@@ -49,12 +48,12 @@ uniform sampler2D faceSdf;
 
 #elif defined(IS_EYE)
 
-uniform bool useEyeHighlights;
-uniform sampler2D eyeHighlight;
-uniform sampler2D eyeBottomHighlight;
-
 uniform sampler2D eyeEm;
 uniform float eyeDepth;
+
+uniform sampler2D eyeHighlight;
+uniform sampler2D eyeHighlight2;
+uniform bool useEyeHighlights;
 
 #else
 
@@ -101,6 +100,12 @@ uniform vec3 bandBright;
 
 uniform float bandAdd;
 
+#elif defined(IS_BODY)
+
+uniform sampler2D metallicMatCap;
+uniform sampler2D ftm;
+uniform bool hasFtm;
+
 #endif
 
 // Denia
@@ -117,9 +122,9 @@ uniform float invSparkleTiling;
 #ifdef HAS_MILKWAY
 uniform sampler2D milkway;
 uniform sampler2D milkwayMask;
+uniform float sparkleTiling;
 uniform bool shouldGlowRed;
 uniform bool isDeniaChest;
-uniform float sparkleTiling;
 #endif
 
 #ifdef HAS_FX
@@ -139,8 +144,8 @@ varying vec3 vNormal;
 varying vec3 vTangent;
 varying vec3 vBitangent;
 
-vec3 adjustSat(vec3 color, float sat) { return mix(vec3(dot(color, vec3(0.2126, 0.7152, 0.0722))), color, sat); }
-float smootherstep(float edge0, float edge1, float x);
+vec3 adjustSat(vec3 c, float sat) { return mix(vec3(dot(c, vec3(0.2126, 0.7152, 0.0722))), c, sat); }
+float smootherstep(float e0, float e1, float x);
 float GTTonemap(float x);
 
 #ifdef IS_HAIR
@@ -154,7 +159,14 @@ void main() {
     gl_FragDepth = gl_FragCoord.z;
 #endif
 
+#ifdef IS_EYE
+    vec2 eyeUv = vUv - vec2(dot(vViewDir, vTangent), dot(vViewDir, vBitangent)) * eyeDepth;
+    eyeUv = mix(eyeUv, vUv, texture2D(eyeEm, vUv).g);
+    vec4 baseTex = texture2D(base, eyeUv);
+#else
     vec4 baseTex = texture2D(base, isFur ? vUv2 : vUv);
+#endif
+
     vec3 baseColor = baseTex.rgb;
 
     if (
@@ -164,11 +176,11 @@ void main() {
     ) discard;
 
     vec3 normal = vNormal;
+
+    vec4 nrm = hasNrm ? texture2D(nrm, vUv) : vec4(0.5, 0.5, 0.0, 0.0);
     float isMetallic = 0.0;
 
     if (hasNrm) {
-        vec4 nrm = texture2D(nrm, vUv);
-
         // This is correct but UV seams are visible
         /*
         vec3 tangentNormal = vec3(nrm.rg * 2.0 - 1.0, 0.0);
@@ -178,8 +190,7 @@ void main() {
         normal = normalize(tbn * tangentNormal);
         */
 
-        nrm.a = 1.0 - nrm.a;
-        isMetallic = nrm.a * step(0.425, nrm.a);
+        isMetallic = max(nrm.b * step(0.5, nrm.b), (1.0 - nrm.a) * step(0.425, 1.0 - nrm.a));
     }
 
     float NdotV = dot(normal, vViewDir);
@@ -245,16 +256,37 @@ void main() {
     }
 #endif
 
-    vec3 directionalLight = lightIntensity * directionalLights[0].color * adjustSat(lightTint, tintStrength);
+    vec3 lightColor = directionalLights[0].color * adjustSat(lightTint, tintStrength);
+    vec3 directionalLight = lightIntensity * lightColor;
 
     // Specular (Blinn-Phong)
     float NdotH = max(dot(normal, normalize(lightDir + vViewDir)), 0.0);
-    float specularIntensity = pow(NdotH, specularExp) * lightIntensity;
+    float spec = pow(NdotH, specularExp) * (1.03 - nrm.a) * lightIntensity;
+    spec = (-0.3 + clamp((spec - 0.01) / 0.51, 0.0, 1.0) * 5.52) * 0.1; // Suppress weak highlights, boost stronger ones
+    spec *= 2.0 - nrm.a;
+
+#ifdef IS_BODY
+    vec3 r = normalize(
+        reflect(vViewDir, normal) +
+        reflect(lightDir, normal) * NdotL
+    );
+    float m = 2.0 * sqrt(
+        r.x * r.x +
+        r.y * r.y +
+        (r.z + 1.0) * (r.z + 1.0)
+    );
+    vec4 mc = texture2D(metallicMatCap, r.xy / m + 0.5);
+
+    float ramp = 1.07 + smootherstep(0.3, 1.0, mc.a) * (-2.58 - 1.07) - (1.0 - lightIntensity);
+    float metalSpec = mix(ramp * nrm.a, 1.5, step(0.99, ramp) * (1.0 - nrm.a));
+    metalSpec *= mix(1.0, 0.2, 1.0 - lightIntensity);
+    spec = mix(spec, metalSpec, isMetallic);
+#endif
 
     // Fresnel
     vec3 F0 = vec3(0.04);
     vec3 F = F0 + (1.0 - F0) * pow(1.0 - NdotV, 5.0);
-    vec3 specular = specularIntensity * F * directionalLights[0].color * lightTint;
+    vec3 specular = spec * F * lightColor;
 
     // Rim Light
     float rimIntensity = facing * pow(NdotL, rimLightThreshold);
@@ -266,27 +298,17 @@ void main() {
     finalLighting += ambientLightColor * adjustSat(ambientTint, tintStrength);
     finalLighting *= mix(vec3(1.0), adjustSat(shadowTint, tintStrength), 1.0 - lightIntensity);
 
-    // Metallic
+#ifdef IS_BODY
     if (hasFtm) {
         float ftmG = texture2D(ftm, vUv).g;
-        isMetallic = min(isMetallic + ftmG * step(0.667, ftmG), 1.0);
+        isMetallic = min(isMetallic + ftmG * smootherstep(0.7, 1.0, ftmG), 1.0);
     }
 
     if (isMetallic > 0.0) {
-        vec3 r = normalize(
-            reflect(vViewDir, normal) +
-            reflect(lightDir, normal) * NdotL
-        );
-        float m = 2.0 * sqrt(
-            r.x * r.x +
-            r.y * r.y +
-            (r.z + 1.0) * (r.z + 1.0)
-        );
-        float metallic = adjustSat(texture2D(metallicMatCap, r.xy / m + 0.5).rgb, 0.0).r;
-
-        baseColor = mix(baseColor, baseColor * metallic, isMetallic);
+        baseColor = mix(baseColor, baseColor * adjustSat(mc.rgb, 0.0).r, isMetallic);
         baseColor *= 1.0 + isMetallic * metallicBrightness;
     }
+#endif
 
     /* Final Color */
 
@@ -340,16 +362,18 @@ void main() {
         // a fixed near-white turns dark hair into plastic, so the sheen follows the hair colour instead
         baseColor = mix(baseColor, baseColor * 2.0 + 0.05, clamp(highlight, 0.0, 1.0) * 0.5); // ponytail: 2.0, 0.05 and 0.5 eyeballed
     }
-#elif defined(IS_EYE)
-    if (useEyeHighlights)
-       baseColor += texture2D(eyeHighlight, vUv).r + texture2D(eyeBottomHighlight, vUv).r;
 #endif
 
     color = (wasColorModified ? color : baseColor) * finalLighting;
 
+    if (hasEmission)
+        color *= mix(vec3(1.0), emissionColor * 1.1, step(0.8, baseTex.a) * 0.97);
+
 #ifdef IS_EYE
-       vec2 eyeUv = vUv - vec2(dot(vViewDir, vTangent), dot(vViewDir, vBitangent)) * eyeDepth;
-       color = max(color, baseColor * texture2D(base, mix(eyeUv, vUv, texture2D(eyeEm, vUv).g)).rgb);
+    if (useEyeHighlights) {
+        const vec3 eyeHighlightColor = vec3(0.502685, 0.512441, 0.517708);
+        color += texture2D(eyeHighlight, eyeUv).r * eyeHighlightColor + texture2D(eyeHighlight2, eyeUv).r * eyeHighlightColor;
+    }
 #endif
 
     // Color Grading
@@ -398,8 +422,8 @@ vec3 hairBand(vec3 color, vec3 ramp, float mask, float light) {
 
 #endif
 
-float smootherstep(float edge0, float edge1, float x) {
-    x = clamp((x - edge0)/(edge1 - edge0), 0.0, 1.0);
+float smootherstep(float e0, float e1, float x) {
+    x = clamp((x - e0)/(e1 - e0), 0.0, 1.0);
     return x * x * x * (x * (x * 6.0 - 15.0) + 10.0);
 }
 

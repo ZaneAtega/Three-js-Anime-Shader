@@ -5,12 +5,9 @@ export const config = {
         aCutoff: { value: 0.0 },
         gCutoff: { value: 0.0 },
         isFur: { value: false },
-
-        hasOutlineMask: { value: false },
         hasNrm: { value: false },
-        hasFtm: { value: false },
 
-        specularExp: { value: 10.0 },
+        specularExp: { value: 20.0 },
         rimLightThreshold: { value: 0.2 },
         rimThreshold: { value: 0.7 },
         metallicBrightness: { value: 1.0 },
@@ -25,11 +22,9 @@ export const config = {
         sparkTimeSpeed: { value: -0.05 },
         starTiling: { value: 4.0 },
         invSparkleTiling: { value: 0.0 },
-
+        sparkleTiling: { value: 4.0 },
         shouldGlowRed: { value: false },
         isDeniaChest: { value: false },
-        sparkleTiling: { value: 4.0 },
-
         addStars: { value: true },
 
         outlineLightInfluence: { value: 0.667 },
