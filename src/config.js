@@ -47,6 +47,11 @@ export const config = {
         addStars: { value: true }
     },
     DIR_LIGHT_RADIUS: 100,
-    DIR_LIGHT_INTENSITY: 0.4,
-    USE_SCREEN_SPACE_RIM: true
+    DIR_LIGHT_INTENSITY: 0.4
 };
+
+const ua = navigator.userAgent.toLowerCase();
+config.IS_MOBILE = ["phone", "mobile", "ipod", "blackberry", "palm", "windows ce", "opera mini", "avantgo", "docomo", "kaios"].some(s => ua.includes(s));
+
+const compat = new URLSearchParams(location.search).get("compat")?.toLowerCase();
+config.USE_SCREEN_SPACE_RIM = compat === "false" ? true : compat === "true" ? false : !config.IS_MOBILE;
