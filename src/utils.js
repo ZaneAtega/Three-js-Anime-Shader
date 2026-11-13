@@ -345,8 +345,8 @@ const ApplyMats = (instance) => {
                     uniforms.hasId = { value: !!uniforms.idMap?.value };
                 }
 
-                uniforms.subsurfaceColor = { value: getColor(colors.SubsurfaceColor) }; // [0.3372, 0.3712, 0.5029]
                 uniforms.skinSubsurfaceColor = { value: getColor(colors.SkinSubsurfaceColor) }; // [0.863, 0.46, 0.358] // [0.72, 0.51, 0.46]
+                uniforms.subsurfaceColor = { value: getColor(colors.SubsurfaceColor) }; // [0.863, 0.46, 0.358] // [0.72, 0.51, 0.46]
 
                 break;
         }
@@ -383,6 +383,15 @@ const ApplyMats = (instance) => {
                 }
                 break;
             */
+            case "Galbrena":
+                switch (part) {
+                    case "Up":
+                    case "Down":
+                        uniforms.skinSubsurfaceColor.value = [0, 0, 0];
+                        uniforms.subsurfaceColor.value = [0, 0, 0];
+                        break;
+                }
+                break;
             case "Denia":
                 uniforms.time = { value: 1.0 };
 
@@ -436,6 +445,7 @@ const ApplyMats = (instance) => {
                         defines.HAS_FX = true;
                         defines.HAS_MILKWAY = true;
                         uniforms.sparkleTiling = { value: 10.0 };
+                        uniforms.subsurfaceColor.value = [0, 0, 0];
                         break;
                 }
 

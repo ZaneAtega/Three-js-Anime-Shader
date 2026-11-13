@@ -9,7 +9,7 @@ I wanted an anime-style shader that runs on the web but couldn't find one anywhe
 | URL | Rim Lighting | Outlines | Comments |
 |:---:|:---:|:---:|:---:|
 | [Default](https://zaneatega.github.io/Three-js-Anime-Shader) | Screen-Space | ✅ | Intended appearance |
-| [?rim_compat=true](https://zaneatega.github.io/Three-js-Anime-Shader?rim_compat=true) | Fresnel | ✅ | Default on mobile |
+| [?rim_compat=true](https://zaneatega.github.io/Three-js-Anime-Shader?rim_compat=true) | Fresnel | ✅ | |
 | [?outlines=false](https://zaneatega.github.io/Three-js-Anime-Shader?outlines=false) | Screen-Space | ❌ | |
 | [?rim_compat=true&outlines=false](https://zaneatega.github.io/Three-js-Anime-Shader?rim_compat=true&outlines=false) | Fresnel | ❌ | Maximum compatibility |
 

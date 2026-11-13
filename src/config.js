@@ -50,11 +50,9 @@ export const config = {
     DIR_LIGHT_INTENSITY: 0.4
 };
 
+const params = new URLSearchParams(location.search);
+config.USE_SCREEN_SPACE_RIM = params.get("rim_compat")?.toLowerCase() !== "true";
+config.ENABLE_OUTLINES = params.get("outlines")?.toLowerCase() !== "false";
+
 const ua = navigator.userAgent.toLowerCase();
 config.IS_MOBILE = ["phone", "mobile", "ipod", "blackberry", "palm", "windows ce", "opera mini", "avantgo", "docomo", "kaios"].some(s => ua.includes(s));
-
-const params = new URLSearchParams(location.search);
-const rimCompat = params.get("rim_compat")?.toLowerCase();
-
-config.USE_SCREEN_SPACE_RIM = rimCompat === "false" ? true : rimCompat === "true" ? false : !config.IS_MOBILE;
-config.ENABLE_OUTLINES = params.get("outlines")?.toLowerCase() !== "false";

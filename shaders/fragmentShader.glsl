@@ -413,15 +413,15 @@ void main() {
         color = mix(baseColor, baseColor * 2.0 + 0.05, clamp(highlight, 0.0, 1.0) * 0.5); // ponytail: 2.0, 0.05 and 0.5 eyeballed
     }
 #elif defined(IS_BODY)
-    float notSkin = hasFtm ? step(ftmG, 0.001) : hasId ? texture2D(idMap, vUv).r : 0.0;
+    float skin = hasFtm ? step(ftmG, 0.001) : hasId ? texture2D(idMap, vUv).r : 0.0;
     float sss = (smootherstep(0.25, 0.0, NdotL * 0.5) - baseShadow) * 3.0 - aoShadow - isMetallic;
     vec3 middleTint = isWarmPalette ? (lightTint + shadowTint) * 0.5 : vec3(1.0);
 
     if (any(greaterThan(subsurfaceColor, vec3(0.0))))
-        color = mix(baseColor, subsurfaceColor * middleTint, clamp(sss - notSkin, 0.0, 1.0));
+        color = mix(baseColor, subsurfaceColor * middleTint, clamp(sss - skin, 0.0, 1.0));
 
     if (any(greaterThan(skinSubsurfaceColor, vec3(0.0))))
-        color = mix(color, skinSubsurfaceColor * middleTint, clamp(sss - (1.0 - notSkin), 0.0, 1.0));
+        color = mix(color, skinSubsurfaceColor * middleTint, clamp(sss - (1.0 - skin), 0.0, 1.0));
 #endif
 
     color *= finalLighting;
