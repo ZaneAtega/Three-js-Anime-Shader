@@ -46,6 +46,20 @@ function setupThree(instance) {
     instance.scene = scene;
 }
 
+function setupDepthTarget(instance) {
+    instance.depthTarget = new THREE.WebGLRenderTarget(1, 1, {
+        depthBuffer: true,
+        depthTexture: new THREE.DepthTexture(1, 1)
+    });
+
+    cfg.DEFAULT_UNIFORMS.rimDepth.value = instance.depthTarget.depthTexture;
+
+    instance.depthMaterial = new THREE.MeshBasicMaterial({
+        colorWrite: false,
+        side: THREE.DoubleSide
+    });
+}
+
 function loadTex(url, colorSpace = THREE.SRGBColorSpace, flipY = true) {
     return new Promise((resolve) => {
         new THREE.TextureLoader().load(
@@ -490,8 +504,11 @@ const ApplyMats = (instance) => {
             fragmentShader: instance.fragmentShader
         });
 
+        if (cfg.USE_SCREEN_SPACE_RIM)
+            mat.fragmentShader = `#define USE_SCREEN_SPACE_RIM\n${mat.fragmentShader}`;
+
         if (defines.IS_BODY) {
-            mat.fragmentShader = `#define USE_TANGENT_BASIS\n${instance.fragmentShader}`;
+            mat.fragmentShader = `#define USE_TANGENT_BASIS\n${mat.fragmentShader}`;
         } else if (part === "Fur") {
             mat.transparent = true;
             mat.side = THREE.DoubleSide;
@@ -523,7 +540,7 @@ const ApplyMats = (instance) => {
 
             const defines = {};
 
-            const uniforms = structuredClone(cfg.DEFAULT_UNIFORMS);
+            const uniforms = THREE.UniformsUtils.clone(cfg.DEFAULT_UNIFORMS);
             instance.paletteIndex = applyPaletteUniforms(instance.PALETTES, instance.paletteIndex, uniforms);
             uniforms.base = { value: await loadTex(`${texPrefix}_D.png`) };
 
@@ -570,4 +587,4 @@ const ApplyMats = (instance) => {
     return { applyMats };
 };
 
-export { setupThree, loadTex, pruneMorphTargets, ApplyMats, postprocessing, isFacingCamera, lerp, updatePalette, onWindowResize };
+export { setupThree, setupDepthTarget, loadTex, pruneMorphTargets, ApplyMats, postprocessing, isFacingCamera, lerp, updatePalette, onWindowResize };

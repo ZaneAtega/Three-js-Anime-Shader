@@ -12,9 +12,26 @@ uniform float tintStrength;
 uniform bool isWarmPalette;
 
 uniform float specularExp;
+uniform float metallicBrightness;
+
+#ifdef USE_SCREEN_SPACE_RIM
+
+uniform float rimWidth;
+uniform float rimLightStartOffset;
+uniform float ssRimLightThreshold;
+uniform float ssRimThreshold;
+uniform float rimBrightness;
+
+uniform sampler2D rimDepth;
+uniform vec2 rimScreen;
+uniform vec3 rimCamera;
+
+#else
+
 uniform float rimLightThreshold;
 uniform float rimThreshold;
-uniform float metallicBrightness;
+
+#endif
 
 uniform float outlineLightInfluence;
 uniform float outlineBurnIntensity;
@@ -151,12 +168,18 @@ varying vec3 vNormal;
 varying vec3 vTangent;
 varying vec3 vBitangent;
 
-vec3 adjustSat(vec3 c, float sat) { return mix(vec3(dot(c, vec3(0.2126, 0.7152, 0.0722))), c, sat); }
+const vec3 LUM = vec3(0.2126, 0.7152, 0.0722);
+vec3 adjustSat(vec3 c, float sat) { return mix(vec3(dot(c, LUM)), c, sat); }
+
 float smootherstep(float e0, float e1, float x);
 float GTTonemap(float x);
 
+#ifdef USE_SCREEN_SPACE_RIM
+float linearizeDepth(sampler2D depth, vec2 uv);
+#endif
+
 #ifdef IS_HAIR
-vec3 hairBand(vec3 color, vec3 ramp, float mask, float light);
+vec3 hairBand(vec3 c, vec3 ramp, float mask, float light);
 #endif
 
 void main() {
@@ -263,7 +286,28 @@ void main() {
     }
 #endif
 
-    float shadow = 1.0 - lightIntensity;
+    float rimIntensity = 0.0;
+
+#ifdef USE_SCREEN_SPACE_RIM
+    float cm = -vViewPos.z * 100.0;
+    float near = 0.5 * ((50.0 - min(cm, 50.0)) * 0.02 - 1.0 + pow((3000.0 - min(cm, 3000.0)) / 3000.0, 8.0));
+    float isLightBehind = smoothstep(0.0, 1.0, (-0.5 - dot(lightDir, vViewDir)) * 2.0);
+    float reach = ((NdotL + 1.0) * 0.00375 + 0.0075) * max(0.8 - max(NdotV, 0.0), 0.0) * (isLightBehind + 1.0) * (near + 1.0);
+
+    vec2 dir = normalize(normal.xy + 0.0001) * vec2(1.0, 0.5) * rimWidth * reach;
+    float gap = (linearizeDepth(rimDepth, gl_FragCoord.xy / rimScreen + dir) - -vViewPos.z);
+
+    if (ssRimLightThreshold == 0.0) {
+        rimIntensity = gap;
+    } else {
+        float lightInfluence = min(NdotL + max(0.0, (1.0 - NdotL) * rimLightStartOffset), 1.0);
+        rimIntensity = gap * pow(lightInfluence, ssRimLightThreshold);
+    }
+
+    rimIntensity = smoothstep(ssRimThreshold - 0.01, ssRimThreshold + 0.01, rimIntensity) * rimBrightness;
+#endif
+
+    float shadow = 1.0 - lightIntensity - min(rimIntensity, 1.0);
     vec3 shadowTint = adjustSat(shadowTint, tintStrength);
 
     vec3 lightTint = adjustSat(lightTint, tintStrength);
@@ -299,12 +343,13 @@ void main() {
     vec3 F = F0 + (1.0 - F0) * pow(1.0 - NdotV, 5.0);
     vec3 specular = spec * F * lightColor;
 
-    // Rim Light
-    float rimIntensity = facing * pow(NdotL, rimLightThreshold);
+#ifndef USE_SCREEN_SPACE_RIM
+    rimIntensity = facing * pow(NdotL, rimLightThreshold);
     rimIntensity = smoothstep(rimThreshold - 0.01, rimThreshold + 0.01, rimIntensity);
+#endif
+
     vec3 rim = rimIntensity * directionalLights[0].color * adjustSat(rimTint, tintStrength);
 
-    // Final Lighting
     vec3 finalLighting = directionalLight + specular + rim;
     finalLighting += ambientLightColor * adjustSat(ambientTint, tintStrength);
     finalLighting *= mix(vec3(1.0), shadowTint, shadow);
@@ -421,22 +466,6 @@ void main() {
     gl_FragColor = vec4(color, 1.0);
 }
 
-#ifdef IS_HAIR
-
-vec3 hairBand(vec3 color, vec3 ramp, float mask, float light) {
-    vec3 r = ramp * 2.0 - 1.0;
-    vec3 added = mask * r * light;
-
-    // Dark ramp values multiply, bright ones add or screen
-    return mix(
-        color * (1.0 + mask * r),
-        mix(1.0 - (1.0 - added) * (1.0 - color), added + color, bandAdd),
-        step(vec3(0.5), ramp)
-    );
-}
-
-#endif
-
 float smootherstep(float e0, float e1, float x) {
     x = clamp((x - e0)/(e1 - e0), 0.0, 1.0);
     return x * x * x * (x * (x * 6.0 - 15.0) + 10.0);
@@ -468,3 +497,30 @@ float GTTonemap(float x) {
     float T_x = m * pow(x * invM, c) + b;
     return T_x * w0_x + L_x * w1_x + S_x * w2_x;
 }
+
+#ifdef USE_SCREEN_SPACE_RIM
+
+// Convert a sampled depth-buffer value into view-space depth (distance from the camera)
+float linearizeDepth(sampler2D depth, vec2 uv) {
+    float n = rimCamera.x;
+    float f = rimCamera.y;
+    return n * f / (f - texture2D(depth, uv).r * (f - n));
+}
+
+#endif
+
+#ifdef IS_HAIR
+
+vec3 hairBand(vec3 c, vec3 ramp, float mask, float light) {
+    vec3 r = ramp * 2.0 - 1.0;
+    vec3 added = mask * r * light;
+
+    // Dark ramp values multiply, bright ones add or screen
+    return mix(
+        c * (1.0 + mask * r),
+        mix(1.0 - (1.0 - added) * (1.0 - c), added + c, bandAdd),
+        step(vec3(0.5), ramp)
+    );
+}
+
+#endif
