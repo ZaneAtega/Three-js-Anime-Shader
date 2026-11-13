@@ -152,7 +152,7 @@ function updatePalette(useThreeMat, palette, meshMats, cMeshMats) {
 
     for (const i in meshMats) {
         Object.assign(meshMats[i].uniforms, palette);
-        if (cMeshMats[i].uniforms) Object.assign(cMeshMats[i].uniforms, palette);
+        if (cMeshMats[i]?.uniforms) Object.assign(cMeshMats[i].uniforms, palette);
     }
 }
 
