@@ -8,6 +8,8 @@ import { SMAAPass } from "three/examples/jsm/postprocessing/SMAAPass.js";
 
 import { config as cfg } from "./config.js";
 
+const NO_OUTLINES = ["Eye", "Tacet", "Fur"];
+
 let maxAnisotropy;
 
 function setupThree(instance) {
@@ -100,6 +102,61 @@ function pruneMorphTargets(mesh, keep) {
     }
 
     mesh.geometry.needsUpdate = true;
+}
+
+const getColor = (c, fallback = [0.0, 0.0, 0.0]) => c ? [c.R, c.G, c.B] : fallback;
+
+async function configureOutlineMats(mats, parts, texPrefix, scale) {
+    const prefix = texPrefix.replace("T_", "MI_");
+    const hiddenMat = new THREE.MeshBasicMaterial({ visible: false });
+    let widths = [];
+
+    for (const i in mats) {
+        const mat = mats[i];
+
+        if (NO_OUTLINES.includes(parts[i])) {
+            mats[i] = hiddenMat;
+            continue;
+        }
+
+        mat.defines = { IS_OUTLINE: true };
+        mat.side = THREE.BackSide;
+        mat.transparent = true;
+
+        const {
+            Scalars: scalars = {},
+            Colors: colors = {},
+            Switches: switches = {}
+        } = await fetch(`${prefix}${parts[i]}_OL.json`).then(r => r.ok ? r.json() : {}).catch(() => ({}));
+
+        const outlineColorTint = getColor(colors.OutlineColorTint); // [0.2, 0.2, 0.2]
+        mat.uniforms.useOutlineColorAsTint = { value: switches.UseMainTex };
+        mat.uniforms.outlineColor = { value: switches.UseMainTex ? outlineColorTint : getColor(colors.OutlineColor, outlineColorTint) };
+        if (mat.uniforms.outlineColor.value.every(c => c === 0.0)) mat.defines.USE_COLOR_BURN_OUTLINES = true;
+
+        if (parts[i] === "Bangs") continue;
+
+        mat.uniforms.outlineWidth = { value: scalars.OutlineWidth * scale };
+        if (mat.uniforms.outlineWidth.value) widths.push(mat.uniforms.outlineWidth.value);
+    }
+
+    if (!widths) return;
+
+    const avgWidth = widths.reduce((a, b) => a + b, 0) / widths.length;
+
+    for (const i in mats) {
+        const mat = mats[i];
+        if (NO_OUTLINES.includes(parts[i]) || mat.uniforms.outlineWidth?.value) continue;
+
+        if (parts[i] !== "Bangs") {
+            mat.uniforms.outlineWidth.value = avgWidth;
+            continue;
+        }
+
+        const scalars = await fetch(`${prefix}${parts[i]}_OL.json`).then(r => r.ok ? r.json() : {}).catch(() => ({}));
+        if (!scalars.MinWidth) scalars.MinWidth = 0.03 * scale;
+        mat.uniforms.outlineWidth = { value: scalars.MinWidth }; // (scalars.MinWidth + Math.min(...widths)) / 2
+    }
 }
 
 function postprocessing(instance) {
@@ -223,8 +280,6 @@ const ApplyMats = (instance) => {
         uniforms.bandAdd = { value: scalars.UseAdd ?? 0.0 };
     }
 
-    const getColor = (c, fallback = [0.0, 0.0, 0.0]) => c ? [c.R, c.G, c.B] : fallback;
-
     const getAvgColor = (d, n) => {
         return d && n ? [
             (d.R + n.R) / 2,
@@ -345,8 +400,8 @@ const ApplyMats = (instance) => {
                     uniforms.hasId = { value: !!uniforms.idMap?.value };
                 }
 
-                uniforms.skinSubsurfaceColor = { value: getColor(colors.SkinSubsurfaceColor) }; // [0.863, 0.46, 0.358] // [0.72, 0.51, 0.46]
                 uniforms.subsurfaceColor = { value: getColor(colors.SubsurfaceColor) }; // [0.863, 0.46, 0.358] // [0.72, 0.51, 0.46]
+                uniforms.skinSubsurfaceColor = { value: getColor(colors.SkinSubsurfaceColor) }; // [0.863, 0.46, 0.358] // [0.72, 0.51, 0.46]
 
                 break;
         }
@@ -387,8 +442,8 @@ const ApplyMats = (instance) => {
                 switch (part) {
                     case "Up":
                     case "Down":
-                        uniforms.skinSubsurfaceColor.value = [0, 0, 0];
                         uniforms.subsurfaceColor.value = [0, 0, 0];
+                        uniforms.skinSubsurfaceColor.value = [0, 0, 0];
                         break;
                 }
                 break;
@@ -554,23 +609,14 @@ const ApplyMats = (instance) => {
             instance.paletteIndex = applyPaletteUniforms(instance.PALETTES, instance.paletteIndex, uniforms);
             uniforms.base = { value: await loadTex(`${texPrefix}_D.png`) };
 
-            const matDataPrefix = texPrefix.replace("T_", "MI_");
-            let matData;
+            const matData = await fetch(`${texPrefix.replace("T_", "MI_")}.json`).then(r => r.ok ? r.json() : {}).catch(() => ({}));
 
             const {
                 Scalars: scalars = {},
                 Colors: colors = {},
                 Switches: switches = {},
                 Textures: textures = {}
-            } = matData = await (async () => {
-                for (const suffix of ["", "1", "01", "2", "02"]) {
-                    try {
-                        const r = await fetch(`${matDataPrefix}${suffix}.json`);
-                        if (r.ok) return await r.json();
-                    } catch {}
-                }
-                return {};
-            })();
+            } = matData;
 
             uniforms.useMainTexA = { value: switches.UseMainTexA > 0.5 };
 
@@ -597,4 +643,4 @@ const ApplyMats = (instance) => {
     return { applyMats };
 };
 
-export { setupThree, setupDepthTarget, loadTex, pruneMorphTargets, ApplyMats, postprocessing, isFacingCamera, lerp, updatePalette, onWindowResize };
+export { setupThree, setupDepthTarget, loadTex, pruneMorphTargets, ApplyMats, configureOutlineMats, postprocessing, isFacingCamera, lerp, updatePalette, onWindowResize };

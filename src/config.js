@@ -27,8 +27,7 @@ export const config = {
 
         outlineLightInfluence: { value: 0.667 },
         outlineBurnIntensity: { value: 1.0 },
-        outlineMaxBrightness: { value: 0.25 }, // 0.35 // Adjust this before light influence 
-        isOutline: { value: false },
+        outlineMaxBrightness: { value: 0.25 }, // 0.35 // Adjust this before light influence
 
         morphTextureStride: { value: 1 },
 

@@ -14,6 +14,11 @@ uniform bool isWarmPalette;
 uniform float specularExp;
 uniform float metallicBrightness;
 
+uniform float exposure;
+uniform float invGamma;
+uniform float saturation;
+uniform float hairSaturation;
+
 #ifdef USE_SCREEN_SPACE_RIM
 
 uniform float rimWidth;
@@ -33,15 +38,16 @@ uniform float rimThreshold;
 
 #endif
 
+#ifdef IS_OUTLINE
+
+uniform vec3 outlineColor;
+uniform bool useOutlineColorAsTint;
+
 uniform float outlineLightInfluence;
 uniform float outlineBurnIntensity;
 uniform float outlineMaxBrightness;
-uniform bool isOutline;
 
-uniform float exposure;
-uniform float invGamma;
-uniform float saturation;
-uniform float hairSaturation;
+#endif
 
 // Textures
 
@@ -50,9 +56,6 @@ uniform float aCutoff;
 uniform float gCutoff;
 uniform bool isFur;
 
-uniform sampler2D outlineMask;
-uniform bool hasOutlineMask;
-
 uniform sampler2D nrm;
 uniform bool hasNrm;
 
@@ -60,6 +63,13 @@ uniform bool useMainTexA;
 
 uniform vec3 emissionColor;
 uniform bool hasEmission;
+
+#ifdef IS_OUTLINE
+
+uniform sampler2D outlineMask;
+uniform bool hasOutlineMask;
+
+#endif
 
 #ifdef IS_FACE
 
@@ -199,11 +209,15 @@ void main() {
 
     vec3 baseColor = baseTex.rgb;
 
-    if (
-        baseTex.a < aCutoff ||
-        gCutoff > 0.0 && distance(baseColor, vec3(0.0, 1.0, 0.0)) < gCutoff ||
-        isOutline && hasOutlineMask && texture2D(outlineMask, vUv).r == 0.0
-    ) discard;
+    if (baseTex.a < aCutoff || gCutoff > 0.0 && distance(baseColor, vec3(0.0, 1.0, 0.0)) < gCutoff) discard;
+
+#ifdef IS_OUTLINE
+    if (hasOutlineMask && texture2D(outlineMask, vUv).r == 0.0) discard;
+#ifndef USE_COLOR_BURN_OUTLINES
+    gl_FragColor = vec4(outlineColor * (useOutlineColorAsTint ? baseColor : vec3(1.0)), 1.0);
+    return;
+#endif
+#endif
 
     vec3 normal = vNormal;
 
@@ -364,18 +378,18 @@ void main() {
     }
 #endif
 
-    if (isOutline) {
-        vec3 outlineColor = mix(vec3(1.0), finalLighting, outlineLightInfluence);
+#if defined(IS_OUTLINE) && defined(USE_COLOR_BURN_OUTLINES)
+    vec3 outlineColor = mix(vec3(1.0), finalLighting, outlineLightInfluence);
 
-        vec3 colorBurn = 1.0 - (1.0 - baseColor) / max(baseColor, 0.001);
-        outlineColor *= mix(baseColor, colorBurn, outlineBurnIntensity);
+    vec3 colorBurn = 1.0 - (1.0 - baseColor) / max(baseColor, 0.001);
+    outlineColor *= mix(baseColor, colorBurn, outlineBurnIntensity);
 
-        float brightness = max(outlineColor.r, max(outlineColor.g, outlineColor.b));
-        outlineColor *= min(1.0, outlineMaxBrightness / max(brightness, 0.001));
+    float brightness = max(outlineColor.r, max(outlineColor.g, outlineColor.b));
+    outlineColor *= min(1.0, outlineMaxBrightness / max(brightness, 0.001));
 
-        gl_FragColor = vec4(outlineColor, 1.0);
-        return;
-    }
+    gl_FragColor = vec4(outlineColor, 1.0);
+    return;
+#endif
 
     vec3 color = baseColor;
 

@@ -27,8 +27,9 @@ varying vec3 vNormal;
 varying vec3 vTangent;
 varying vec3 vBitangent;
 
-uniform bool isOutline;
-uniform float outlineThickness;
+#ifdef IS_OUTLINE
+uniform float outlineWidth;
+#endif
 
 void main() {
 	#include <beginnormal_vertex>
@@ -38,7 +39,9 @@ void main() {
 	}
 
 	#include <begin_vertex>
-	if (isOutline) transformed = vec3(position + normal * outlineThickness);
+#ifdef IS_OUTLINE
+	transformed = vec3(position + normal * outlineWidth);
+#endif
 
 	for (int i = 0; i < MORPHTARGETS_COUNT; i++) { // morphtarget_vertex
 		if (morphTargetInfluences[i] > 0.0) transformed += getMorph2(gl_VertexID, i, 0) * morphTargetInfluences[i];
