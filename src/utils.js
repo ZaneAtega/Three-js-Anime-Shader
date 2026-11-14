@@ -109,6 +109,7 @@ const getColor = (c, fallback = [0.0, 0.0, 0.0]) => c ? [c.R, c.G, c.B] : fallba
 async function configureOutlineMats(mats, parts, texPrefix, scale) {
     const prefix = texPrefix.replace("T_", "MI_");
     const hiddenMat = new THREE.MeshBasicMaterial({ visible: false });
+
     let widths = [];
 
     for (const i in mats) {
@@ -213,19 +214,19 @@ function updatePalette(useThreeMat, palette, meshMats, cMeshMats) {
     }
 }
 
-function onWindowResize(instance) {
+function onWindowResize(camera, renderer, composer, videoBgWrapper) {
     const [w, h] = [window.innerWidth, window.innerHeight];
 
-    instance.camera.aspect = w / h;
-    instance.camera.updateProjectionMatrix();
+    camera.aspect = w / h;
+    camera.updateProjectionMatrix();
 
-    instance.renderer.setPixelRatio(window.devicePixelRatio);
-    instance.renderer.setSize(w, h, false);
+    renderer.setPixelRatio(window.devicePixelRatio);
+    renderer.setSize(w, h, false);
 
-    instance.composer.setSize(w, h);
+    composer.setSize(w, h);
 
-    instance.videoBgWrapper.style.width = w > h ? "100%" : "auto";
-    instance.videoBgWrapper.style.height = w > h ? "auto" : " 100%";
+    videoBgWrapper.style.width = w > h ? "100%" : "auto";
+    videoBgWrapper.style.height = w > h ? "auto" : "100%";
 }
 
 const ApplyMats = (instance) => {
