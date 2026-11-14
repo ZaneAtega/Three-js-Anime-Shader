@@ -92,7 +92,7 @@ uniform bool hasRamp;
 
 #endif
 
-#if defined(IS_HAIR)
+#ifdef IS_HAIR
 
 uniform sampler2D hairHm;
 
