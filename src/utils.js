@@ -219,10 +219,10 @@ function onWindowResize(instance) {
     instance.camera.aspect = w / h;
     instance.camera.updateProjectionMatrix();
 
-    instance.bloomPass.setSize(w, h);
-
-    instance.renderer.setSize(w, h, false);
     instance.renderer.setPixelRatio(window.devicePixelRatio);
+    instance.renderer.setSize(w, h, false);
+
+    instance.composer.setSize(w, h);
 
     instance.videoBgWrapper.style.width = w > h ? "100%" : "auto";
     instance.videoBgWrapper.style.height = w > h ? "auto" : " 100%";

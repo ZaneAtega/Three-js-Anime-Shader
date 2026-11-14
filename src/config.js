@@ -46,12 +46,11 @@ export const config = {
         addStars: { value: true }
     },
     DIR_LIGHT_RADIUS: 100,
-    DIR_LIGHT_INTENSITY: 0.4
+    DIR_LIGHT_INTENSITY: 0.4,
+    USE_SCREEN_SPACE_RIM: true
 };
 
-const params = new URLSearchParams(location.search);
-config.USE_SCREEN_SPACE_RIM = params.get("rim_compat")?.toLowerCase() !== "true";
-config.ENABLE_OUTLINES = params.get("outlines")?.toLowerCase() !== "false";
+config.ENABLE_OUTLINES = new URLSearchParams(location.search).get("outlines")?.toLowerCase() !== "false";
 
 const ua = navigator.userAgent.toLowerCase();
 config.IS_MOBILE = ["phone", "mobile", "ipod", "blackberry", "palm", "windows ce", "opera mini", "avantgo", "docomo", "kaios"].some(s => ua.includes(s));
