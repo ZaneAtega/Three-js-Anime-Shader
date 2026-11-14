@@ -375,6 +375,7 @@ const ApplyMats = (instance) => {
             case "Down":
             case "Cloth":
             case "Alpha":
+            case "Body":
                 defines.IS_BODY = true;
 
                 switch (instance.charName) {
