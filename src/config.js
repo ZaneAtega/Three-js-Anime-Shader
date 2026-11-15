@@ -52,6 +52,3 @@ export const config = {
 const params = new URLSearchParams(location.search);
 config.USE_SCREEN_SPACE_RIM = params.get("rim_compat")?.toLowerCase() !== "true";
 config.ENABLE_OUTLINES = params.get("outlines")?.toLowerCase() !== "false";
-
-const ua = navigator.userAgent.toLowerCase();
-config.IS_MOBILE = ["phone", "mobile", "ipod", "blackberry", "palm", "windows ce", "opera mini", "avantgo", "docomo", "kaios"].some(s => ua.includes(s));
