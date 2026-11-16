@@ -253,7 +253,6 @@ const ApplyMats = (instance) => {
 
             switch (part) {
                 case "Hair":
-                    if (instance.charName !== "Denia_3") urls.push(`${texPrefix}_FX.png`);
                 case "Bangs":
                     urls.push(`${texPrefix}_HM.png`);
                     texPrefix = texPrefix.replace(part, "");
@@ -267,11 +266,9 @@ const ApplyMats = (instance) => {
                 case "Fur":
                     urls.push(`${instance.TEXTURES_PATH}T_Fur_M.png`);
                     break;
-                case "Cloth":
-                    if (instance.charName === "Denia") urls.push(`${texPrefix}_OutlineMask.png`);
-                case "Down":
-                    if (instance.charName !== "Denia_3") urls.push(`${texPrefix}_FX.png`);
                 case "Up":
+                case "Down":
+                case "Cloth":
                 case "Alpha":
                 case "Body":
                     let shouldHaveFtm = false;
@@ -301,6 +298,11 @@ const ApplyMats = (instance) => {
                     urls.push(`${texPrefix}Up_MilkwayMask.png`);
                 case "Denia":
                     urls.push(`${texPrefix}Down_MilkwayMask.png`);
+
+                    urls.push(`${texPrefix}Down_FX.png`);
+                    urls.push(`${texPrefix}Hair_FX.png`);
+
+                    if (instance.charName === "Denia") urls.push(`${texPrefix}Cloth_OutlineMask.png`);
                 case "Denia_3":
                     urls.push(`${texPrefix}Cloth_MilkwayMask.png`);
                     break;
