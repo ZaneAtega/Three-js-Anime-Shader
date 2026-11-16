@@ -1,9 +1,7 @@
 import * as THREE from "three";
 
-import { getJson, loadTex, getColor } from './utils.js';
+import { jsonCache, getJson, loadTex, getColor } from './utils.js';
 import { config as cfg } from "./config.js";
-
-const jsonCache = {};
 
 export const ApplyMats = (instance) => {
     async function warmCache() {

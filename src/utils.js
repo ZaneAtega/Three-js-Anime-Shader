@@ -345,7 +345,7 @@ function onWindowResize(camera, renderer, composer, videoBgWrapper) {
 export {
     setupThree, setupDepthTarget,
     getGeometrySize, pruneMorphTargets,
-    getJson, loadTex, getColor, configureOutlineMats,
+    jsonCache, getJson, loadTex, getColor, configureOutlineMats,
     postprocessing,
     createProxyGeometry,
     isFacingCamera, lerp,
