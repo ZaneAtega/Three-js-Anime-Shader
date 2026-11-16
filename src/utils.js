@@ -150,7 +150,7 @@ async function configureOutlineMats(mats, parts, texPrefix, scale) {
         if (mat.uniforms.outlineWidth.value) widths.push(mat.uniforms.outlineWidth.value);
     }
 
-    if (widths.length === 0) return;
+    if (widths.length < 1) return;
 
     const avgWidth = widths.reduce((a, b) => a + b, 0) / widths.length;
 
@@ -381,7 +381,7 @@ const ApplyMats = (instance) => {
     };
 
     async function applyPartDefinesUniforms(part, texPrefix, matData, defines, uniforms) {
-        const { Scalars: scalars = {}, Colors: colors = {}, Switches: switches = {}, Textures: textures = {} } = matData;
+        const { Scalars: scalars = {}, Colors: colors = {} } = matData;
 
         switch (part) {
             case "Face":
@@ -704,20 +704,14 @@ const ApplyMats = (instance) => {
             instance.paletteIndex = applyPaletteUniforms(instance.PALETTES, instance.paletteIndex, uniforms);
             uniforms.base = { value: await loadTex(`${texPrefix}_D.png`) };
 
-            const matData = getJson(`${texPrefix.replace("T_", "MI_")}.json`);
-
-            const {
-                Scalars: scalars = {},
-                Colors: colors = {},
-                Switches: switches = {},
-                Textures: textures = {}
-            } = matData;
+            const matData = await getJson(`${texPrefix.replace("T_", "MI_")}.json`);
+            const { Scalars: scalars = {}, Colors: colors = {}, Switches: switches = {} } = matData;
 
             uniforms.useMainTexA = { value: switches.UseMainTexA > 0.5 };
 
             const emissionColor = colors.EmissionColor;
 
-            if (emissionColor && switches.UseMainTexA && emissionColor.R + emissionColor.G + emissionColor.B > 0)
+            if (emissionColor && uniforms.useMainTexA.value && emissionColor.R + emissionColor.G + emissionColor.B > 0)
                 uniforms.emissionColor = { value: [emissionColor.R, emissionColor.G, emissionColor.B] };
 
             uniforms.hasEmission = { value: !!uniforms.emissionColor?.value };
