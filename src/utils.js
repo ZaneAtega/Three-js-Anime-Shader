@@ -9,7 +9,7 @@ import { SMAAPass } from "three/examples/jsm/postprocessing/SMAAPass.js";
 import { config as cfg } from "./config.js";
 
 const NO_OUTLINES = ["Eye", "Tacet", "Fur"];
-
+const jsonCache = {};
 let maxAnisotropy;
 
 function setupThree(instance) {
@@ -104,6 +104,15 @@ function pruneMorphTargets(mesh, keep) {
     mesh.geometry.needsUpdate = true;
 }
 
+async function getJson(url) {
+    if (jsonCache[url])
+        return jsonCache[url];
+
+    jsonCache[url] = await fetch(url).then(r => r.ok ? r.json() : {}).catch(() => ({}));
+
+    return jsonCache[url];
+}
+
 const getColor = (c, fallback = [0.0, 0.0, 0.0]) => c ? [c.R, c.G, c.B] : fallback;
 
 async function configureOutlineMats(mats, parts, texPrefix, scale) {
@@ -128,7 +137,7 @@ async function configureOutlineMats(mats, parts, texPrefix, scale) {
             Scalars: scalars = {},
             Colors: colors = {},
             Switches: switches = {}
-        } = await fetch(`${prefix}${parts[i]}_OL.json`).then(r => r.ok ? r.json() : {}).catch(() => ({}));
+        } = await getJson(`${prefix}${parts[i]}_OL.json`);
 
         const outlineColorTint = getColor(colors.OutlineColorTint); // [0.2, 0.2, 0.2]
         mat.uniforms.useOutlineColorAsTint = { value: switches.UseMainTex };
@@ -154,7 +163,7 @@ async function configureOutlineMats(mats, parts, texPrefix, scale) {
             continue;
         }
 
-        const scalars = await fetch(`${prefix}${parts[i]}_OL.json`).then(r => r.ok ? r.json() : {}).catch(() => ({}));
+        const scalars = await getJson(`${prefix}${parts[i]}_OL.json`);
         if (!scalars.MinWidth) scalars.MinWidth = 0.03 * scale;
         mat.uniforms.outlineWidth = { value: scalars.MinWidth }; // (scalars.MinWidth + Math.min(...widths)) / 2
     }
@@ -230,6 +239,86 @@ function onWindowResize(camera, renderer, composer, videoBgWrapper) {
 }
 
 const ApplyMats = (instance) => {
+    async function warmCache() {
+        const urls = [];
+        const json_urls = [];
+
+        for (const part of instance.activeChar.parts) {
+            let texPrefix = `${instance.TEXTURES_PATH}${instance.skin[0]}/${instance.skin[1]}${part}`;
+            urls.push(`${texPrefix}_D.png`);
+
+            const matData = texPrefix.replace("T_", "MI_")
+            json_urls.push(`${matData}.json`);
+            json_urls.push(`${matData}_OL.json`);
+
+            switch (part) {
+                case "Hair":
+                    if (instance.charName !== "Denia_3") urls.push(`${texPrefix}_FX.png`);
+                case "Bangs":
+                    urls.push(`${texPrefix}_HM.png`);
+                    texPrefix = texPrefix.replace(part, "");
+
+                    urls.push(`${texPrefix}_Skin.png`);
+
+                    urls.push(`${texPrefix}Bangs_HN.png`);
+                    urls.push(`${texPrefix}Hair_HR.png`);
+
+                    break;
+                case "Fur":
+                    urls.push(`${instance.TEXTURES_PATH}T_Fur_M.png`);
+                    break;
+                case "Cloth":
+                    if (instance.charName === "Denia") urls.push(`${texPrefix}_OutlineMask.png`);
+                case "Down":
+                    if (instance.charName !== "Denia_3") urls.push(`${texPrefix}_FX.png`);
+                case "Up":
+                case "Alpha":
+                case "Body":
+                    let shouldHaveFtm = false;
+
+                    switch (instance.charName) {
+                        case "Denia_3":
+                            break;
+                        case "Denia":
+                        case "Denia_2":
+                            urls.push(`${texPrefix}_FTM.png`);
+                            shouldHaveFtm = true;
+                        default:
+                            urls.push(`${texPrefix}_N.png`);
+                    }
+
+                    if (!shouldHaveFtm) urls.push(`${texPrefix}_ID.png`);
+
+                    break;
+            }
+        }
+
+        if (instance.charName.startsWith("Denia")) {
+            const texPrefix = `${instance.TEXTURES_PATH}${instance.charName}/${instance.activeChar.texPrefix}`;
+
+            switch (instance.charName) {
+                case "Denia_2":
+                    urls.push(`${texPrefix}Up_MilkwayMask.png`);
+                case "Denia":
+                    urls.push(`${texPrefix}Down_MilkwayMask.png`);
+                case "Denia_3":
+                    urls.push(`${texPrefix}Cloth_MilkwayMask.png`);
+                    break;
+            }
+        }
+
+        await Promise.all(urls.map(url => new Promise(resolve => {
+            const img = new Image();
+            img.crossOrigin = "anonymous";
+            img.onload = img.onerror = resolve;
+            img.src = url;
+        })));
+
+        await Promise.all(json_urls.map(async url => {
+            jsonCache[url] = await fetch(url).then(r => r.ok ? r.json() : {}).catch(() => ({}));
+        }));
+    }
+
     function applyPaletteUniforms(palettes, paletteIndex, uniforms) {
         if (paletteIndex === undefined) {
             const hr = new Date().getHours();
@@ -308,7 +397,7 @@ const ApplyMats = (instance) => {
                 uniforms.eyeEm = { value: await loadTex(`${texPrefix}T_HDMF_EM.png`, false) };
                 uniforms.eyeDepth = { value: 1.5 * (scalars.ParallaxHeight ?? 0.1) };
 
-                uniforms.useEyeHighlights = { value: instance.charName !== "Denia_2" };
+                uniforms.useEyeHighlights = { value: instance.activeChar.useEyeHighlights !== false };
                 if (!uniforms.useEyeHighlights.value) break;
 
                 uniforms.eyeHighlight = { value: await loadTex(`${texPrefix}T_Highlight_1.png`, false) };
@@ -594,6 +683,8 @@ const ApplyMats = (instance) => {
             return;
         }
 
+        await warmCache();
+
         for (const part of instance.activeChar.parts) {
             const texPrefix = `${instance.TEXTURES_PATH}${instance.skin[0]}/${instance.skin[1]}${part}`;
 
@@ -611,7 +702,7 @@ const ApplyMats = (instance) => {
             instance.paletteIndex = applyPaletteUniforms(instance.PALETTES, instance.paletteIndex, uniforms);
             uniforms.base = { value: await loadTex(`${texPrefix}_D.png`) };
 
-            const matData = await fetch(`${texPrefix.replace("T_", "MI_")}.json`).then(r => r.ok ? r.json() : {}).catch(() => ({}));
+            const matData = getJson(`${texPrefix.replace("T_", "MI_")}.json`);
 
             const {
                 Scalars: scalars = {},
