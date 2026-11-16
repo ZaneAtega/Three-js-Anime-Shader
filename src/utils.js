@@ -62,6 +62,18 @@ function setupDepthTarget(instance) {
     });
 }
 
+function getGeometrySize(geometry, mb = true) {
+    let bytes = 0;
+
+    for (const attr of Object.values(geometry.attributes))
+        bytes += attr.array.byteLength;
+
+    if (geometry.index)
+        bytes += geometry.index.array.byteLength;
+
+    return mb ? (bytes / 1024 / 1024).toFixed(2) : bytes;
+}
+
 function loadTex(url, colorSpace = THREE.SRGBColorSpace, flipY = true) {
     return new Promise((resolve) => {
         new THREE.TextureLoader().load(
@@ -104,7 +116,47 @@ function pruneMorphTargets(mesh, keep) {
     mesh.geometry.needsUpdate = true;
 }
 
-async function getJson(url) {
+function createProxyGeometry(mesh, step = 1) {
+    const positions = mesh.geometry.attributes.position;
+    const count = positions.count;
+
+    const pos = new THREE.Vector3();
+
+    const center = new THREE.Vector3();
+    for (let i = 0; i < count; i++) center.add(pos.fromBufferAttribute(positions, i));
+    center.divideScalar(count);
+
+    const axis = new THREE.Vector3(1, 0, 0);
+    const simplified = new Float32Array(Math.ceil(count / step) * 3);
+    let ptr = 0;
+
+    for (let i = 0; i < count; i += step) {
+        pos.fromBufferAttribute(positions, i);
+
+        pos.sub(center);
+        pos.applyAxisAngle(axis, -Math.PI / 2);
+        pos.add(center);
+
+        pos.applyMatrix4(mesh.matrixWorld);
+
+        simplified[ptr++] = pos.x;
+        simplified[ptr++] = pos.y;
+        simplified[ptr++] = pos.z;
+    }
+
+    const geometry = new THREE.BufferGeometry();
+    geometry.setAttribute("position", new THREE.Float32BufferAttribute(simplified, 3));
+
+    /*
+    const originalSize = getGeometrySize(mesh.geometry);
+    const proxySize = getGeometrySize(geometry);
+    console.log(`${originalSize}MB -> ${proxySize}MB (-${((1 - proxySize / originalSize) * 100).toFixed(2)}%)`);
+    */
+
+    return new THREE.Mesh(geometry, new THREE.MeshBasicMaterial({ side: THREE.DoubleSide, visible: false }));
+}
+
+async function _getJson(url) {
     if (jsonCache[url])
         return jsonCache[url];
 
@@ -113,7 +165,7 @@ async function getJson(url) {
     return jsonCache[url];
 }
 
-const getColor = (c, fallback = [0.0, 0.0, 0.0]) => c ? [c.R, c.G, c.B] : fallback;
+const _getColor = (c, fallback = [0.0, 0.0, 0.0]) => c ? [c.R, c.G, c.B] : fallback;
 
 async function configureOutlineMats(mats, parts, texPrefix, scale) {
     const prefix = texPrefix.replace("T_", "MI_");
@@ -137,11 +189,11 @@ async function configureOutlineMats(mats, parts, texPrefix, scale) {
             Scalars: scalars = {},
             Colors: colors = {},
             Switches: switches = {}
-        } = await getJson(`${prefix}${parts[i]}_OL.json`);
+        } = await _getJson(`${prefix}${parts[i]}_OL.json`);
 
-        const outlineColorTint = getColor(colors.OutlineColorTint); // [0.2, 0.2, 0.2]
+        const outlineColorTint = _getColor(colors.OutlineColorTint); // [0.2, 0.2, 0.2]
         mat.uniforms.useOutlineColorAsTint = { value: switches.UseMainTex };
-        mat.uniforms.outlineColor = { value: switches.UseMainTex ? outlineColorTint : getColor(colors.OutlineColor, outlineColorTint) };
+        mat.uniforms.outlineColor = { value: switches.UseMainTex ? outlineColorTint : _getColor(colors.OutlineColor, outlineColorTint) };
         if (mat.uniforms.outlineColor.value.every(c => c === 0.0)) mat.defines.USE_COLOR_BURN_OUTLINES = true;
 
         if (parts[i] === "Bangs") continue;
@@ -163,7 +215,7 @@ async function configureOutlineMats(mats, parts, texPrefix, scale) {
             continue;
         }
 
-        const scalars = await getJson(`${prefix}${parts[i]}_OL.json`);
+        const scalars = await _getJson(`${prefix}${parts[i]}_OL.json`);
         if (!scalars.MinWidth) scalars.MinWidth = 0.03 * scale;
         mat.uniforms.outlineWidth = { value: scalars.MinWidth }; // (scalars.MinWidth + Math.min(...widths)) / 2
     }
@@ -205,6 +257,29 @@ function isFacingCamera(camera, mesh, flip) {
 
 const lerp = (a, b, n) => (1 - n) * a + n * b;
 
+async function switchMat(instance) {
+    document.body.classList.toggle("use-three-mat");
+
+    if (instance.useThreeMat) {
+        instance.dirLight.intensity = 1.0;
+        instance.ambientLight.intensity = 1.0;
+
+        instance.clone.visible = false;
+        instance.headBone.quaternion.identity();
+        instance.inf[instance.dict["E_Close"]] = 0;
+
+        for (const suffix of ["_L", "_R", "_Up", "_Down"])
+            instance.inf[instance.dict[`Pupil${suffix}`]] = 0;
+    } else {
+        instance.dirLight.intensity = cfg.DIR_LIGHT_INTENSITY;
+        instance.ambientLight.intensity = 1.0;
+
+        instance.clone.visible = true;
+    }
+
+    instance.materialApplier.applyMats();
+}
+
 function updatePalette(useThreeMat, palette, meshMats, cMeshMats) {
     if (useThreeMat) return;
 
@@ -221,6 +296,35 @@ function updatePalette(useThreeMat, palette, meshMats, cMeshMats) {
         Object.assign(meshMats[i].uniforms, palette);
         if (cMeshMats[i]?.uniforms) Object.assign(cMeshMats[i].uniforms, palette);
     }
+}
+
+async function switchSkin(instance, folder, texPrefix, newParts) {
+    instance.skin = [folder, texPrefix];
+
+    let mats = instance.cachedMats[`${folder}${instance.useThreeMat}`];
+
+    if (mats) {
+        instance.mesh.material = mats;
+        instance.cMesh.material = instance.cachedMats[`${folder}Outlines`];
+        return;
+    }
+
+    mats = instance.cachedMats[`${instance.charName}${instance.useThreeMat}`].map(mat => mat.clone());
+    const outlineMats = instance.cachedMats[`${instance.charName}Outlines`].map(mat => mat.clone());
+
+    for (const i in instance.activeChar.parts) {
+        const part = instance.activeChar.parts[i];
+        if (!newParts.includes(part)) continue;
+
+        mats[i].uniforms.base = { value: await loadTex(`${instance.TEXTURES_PATH}${folder}/${texPrefix}${part}_D.png`) };
+        if (part !== "Eye") outlineMats[i].uniforms.base = mats[i].uniforms.base; // NO_OUTLINES
+    }
+
+    instance.mesh.material = mats;
+    instance.cMesh.material = outlineMats;
+
+    instance.cachedMats[`${folder}${instance.useThreeMat}`] = mats;
+    instance.cachedMats[`${folder}Outlines`] = outlineMats;
 }
 
 function onWindowResize(camera, renderer, composer, videoBgWrapper) {
@@ -493,8 +597,8 @@ const ApplyMats = (instance) => {
                     uniforms.hasId = { value: !!uniforms.idMap?.value };
                 }
 
-                uniforms.subsurfaceColor = { value: getColor(colors.SubsurfaceColor) }; // [0.863, 0.46, 0.358] // [0.72, 0.51, 0.46]
-                uniforms.skinSubsurfaceColor = { value: getColor(colors.SkinSubsurfaceColor) }; // [0.863, 0.46, 0.358] // [0.72, 0.51, 0.46]
+                uniforms.subsurfaceColor = { value: _getColor(colors.SubsurfaceColor) }; // [0.863, 0.46, 0.358] // [0.72, 0.51, 0.46]
+                uniforms.skinSubsurfaceColor = { value: _getColor(colors.SkinSubsurfaceColor) }; // [0.863, 0.46, 0.358] // [0.72, 0.51, 0.46]
 
                 break;
         }
@@ -677,6 +781,8 @@ const ApplyMats = (instance) => {
     }
 
     async function applyMats(useThreeMat = null, returnMatsOnly = false) {
+        if (!instance.cachedMats) instance.cachedMats = [];
+
         useThreeMat = useThreeMat !== null ? useThreeMat : instance.useThreeMat;
         const mats = instance.cachedMats[`${instance.skin[0]}${useThreeMat}`] || [];
 
@@ -704,7 +810,7 @@ const ApplyMats = (instance) => {
             instance.paletteIndex = applyPaletteUniforms(instance.PALETTES, instance.paletteIndex, uniforms);
             uniforms.base = { value: await loadTex(`${texPrefix}_D.png`) };
 
-            const matData = await getJson(`${texPrefix.replace("T_", "MI_")}.json`);
+            const matData = await _getJson(`${texPrefix.replace("T_", "MI_")}.json`);
             const { Scalars: scalars = {}, Colors: colors = {}, Switches: switches = {} } = matData;
 
             uniforms.useMainTexA = { value: switches.UseMainTexA > 0.5 };
@@ -732,4 +838,4 @@ const ApplyMats = (instance) => {
     return { applyMats };
 };
 
-export { setupThree, setupDepthTarget, loadTex, pruneMorphTargets, ApplyMats, configureOutlineMats, postprocessing, isFacingCamera, lerp, updatePalette, onWindowResize };
+export { setupThree, setupDepthTarget, getGeometrySize, loadTex, pruneMorphTargets, ApplyMats, configureOutlineMats, postprocessing, createProxyGeometry, isFacingCamera, lerp, switchMat, updatePalette, switchSkin, onWindowResize };
