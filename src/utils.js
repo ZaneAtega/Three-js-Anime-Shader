@@ -150,7 +150,7 @@ async function configureOutlineMats(mats, parts, texPrefix, scale) {
         if (mat.uniforms.outlineWidth.value) widths.push(mat.uniforms.outlineWidth.value);
     }
 
-    if (!widths) return;
+    if (widths.length === 0) return;
 
     const avgWidth = widths.reduce((a, b) => a + b, 0) / widths.length;
 
