@@ -261,7 +261,8 @@ void main() {
 
     float aoShadow = 1.0 - smoothstep(0.0, 0.2, useMainTexA ? baseTex.a : 0.5);
     float baseShadow = smootherstep(0.2, 0.0, NdotL * 0.5);
-    float lightIntensity = 1.0 - mix(baseShadow, 1.0, aoShadow);
+    float shadow = mix(baseShadow, 1.0, aoShadow);
+    float lightIntensity = 1.0 - shadow;
 
 #ifdef IS_FACE
     vec3 right = normalize(cross(vec3(0.0, 1.0, 0.0), normal));
@@ -279,6 +280,16 @@ void main() {
 #elif defined(IS_HAIR)
     vec4 hm = texture2D(hairHm, vUv);
 
+#ifdef USE_TANGENT_BASIS
+    // The hair group feeds a constant (0, 1, 1) "normal map" through WuwaNormals: a fixed tilt along T and B
+    float NdotL = dot(normalize(-vTangent + vBitangent + vNormal), lightDir); 
+#endif
+
+    aoShadow = useMainTexA ? 1.0 - smoothstep(0.0, 0.26, baseTex.a) : 0.0;
+    baseShadow = smootherstep(0.06, 0.0, NdotL * 0.5);
+    shadow = mix(baseShadow, 1.0, aoShadow);
+    float highlight = clamp(hm.r - shadow, 0.0, 1.0) * smoothstep(0.5, 1.0, NdotV);
+
     if (hasRamp) {
         float halfLambert = NdotL * 0.5 + 0.5;
         float width = max(hairShadow.y, 0.001);
@@ -289,14 +300,7 @@ void main() {
 
         lightIntensity = smoothstep(0.0, 1.0, clamp((halfLambert - hairShadow.x + width + offset) / (width * 2.0), 0.0, 1.0)) * shadow;
     } else {
-#ifdef USE_TANGENT_BASIS
-        // The hair group feeds a constant (0, 1, 1) "normal map" through WuwaNormals: a fixed tilt along T and B
-        float NdotL = dot(normalize(-vTangent + vBitangent + vNormal), lightDir); 
-#endif
-
-        aoShadow = useMainTexA ? 1.0 - smoothstep(0.0, 0.26, baseTex.a) : 0.0;
-        baseShadow = smootherstep(0.06, 0.0, NdotL * 0.5);
-        lightIntensity = 1.0 - mix(baseShadow, 1.0, aoShadow);
+        lightIntensity = 1.0 - shadow;
     }
 #endif
 
@@ -321,7 +325,7 @@ void main() {
     rimIntensity = smoothstep(ssRimThreshold - 0.01, ssRimThreshold + 0.01, rimIntensity) * rimBrightness;
 #endif
 
-    float shadow = 1.0 - lightIntensity - min(rimIntensity, 1.0);
+    shadow = 1.0 - lightIntensity - min(rimIntensity, 1.0);
     vec3 shadowTint = adjustSat(shadowTint, tintStrength);
 
     vec3 lightTint = adjustSat(lightTint, tintStrength);
@@ -420,8 +424,6 @@ void main() {
         color = hairBand(color, texture2D(bandRamp, vec2(u.y, 0.375)).rgb, masks.y, light.y);
         color = hairBand(color, texture2D(bandRamp, vec2(u.z, 0.625)).rgb, masks.z, light.z);
     } else {
-        float highlight = clamp(hm.r - lightIntensity, 0.0, 1.0) * smoothstep(0.5, 1.0, NdotV);
-
         // Highlight Old, but its colour is hand-picked per character in the blend: 
         // a fixed near-white turns dark hair into plastic, so the sheen follows the hair colour instead
         color = mix(baseColor, baseColor * 2.0 + 0.05, clamp(highlight, 0.0, 1.0) * 0.5); // ponytail: 2.0, 0.05 and 0.5 eyeballed
