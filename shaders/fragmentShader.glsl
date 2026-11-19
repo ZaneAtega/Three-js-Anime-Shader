@@ -289,10 +289,14 @@ void main() {
     float NdotL = dot(normalize(-vTangent + vBitangent + vNormal), lightDir); 
 #endif
 
-    aoShadow = useMainTexA ? 1.0 - smoothstep(0.0, 0.26, baseTex.a) : 0.0;
-    baseShadow = smootherstep(0.06, 0.0, NdotL * 0.5);
-    shadow = mix(baseShadow, 1.0, aoShadow);
-    float highlight = clamp(hm.r - shadow, 0.0, 1.0) * smoothstep(0.5, 1.0, NdotV);
+    float highlight = 0.0;
+
+    if (!hasRamp || !hasBands) {
+        aoShadow = useMainTexA ? 1.0 - smoothstep(0.0, 0.26, baseTex.a) : 0.0;
+        baseShadow = smootherstep(0.06, 0.0, NdotL * 0.5);
+        shadow = mix(baseShadow, 1.0, aoShadow);
+        highlight = max(hm.r - shadow, 0.0) * smoothstep(0.5, 1.0, NdotV);
+    }
 
     if (hasRamp) {
         float halfLambert = NdotL * 0.5 + 0.5;
@@ -302,7 +306,7 @@ void main() {
         // Solid shadow, from both captured draws: alpha over 0.5 and Process, through a Width band centered on 0.5.
         float shadow = useMainTexA ? clamp((min(min(baseTex.a, 0.5) * 2.0 / hairSolid.x, 1.0) - (0.5 - hairSolid.y * 0.5)) / hairSolid.y, 0.0, 1.0) : 1.0;
 
-        lightIntensity = smoothstep(0.0, 1.0, clamp((halfLambert - hairShadow.x + width + offset) / (width * 2.0), 0.0, 1.0)) * shadow;
+        lightIntensity = smoothstep(0.0, 1.0, (halfLambert - hairShadow.x + width + offset) / (width * 2.0)) * shadow;
     } else {
         lightIntensity = 1.0 - shadow;
     }
@@ -343,21 +347,29 @@ void main() {
     spec *= 2.0 - nrm.a;
 
 #ifdef IS_BODY
-    vec3 r = normalize(
-        reflect(vViewDir, normal) +
-        reflect(lightDir, normal) * NdotL
-    );
-    float m = 2.0 * sqrt(
-        r.x * r.x +
-        r.y * r.y +
-        (r.z + 1.0) * (r.z + 1.0)
-    );
-    vec4 mc = texture2D(metallicMatCap, r.xy / m + 0.5);
+    float ftmG = hasFtm ? texture2D(ftm, vUv).g : 0.0;
+    isMetallic = max(isMetallic, smootherstep(0.7, 1.0, ftmG));
 
-    float ramp = 1.07 + smootherstep(0.3, 1.0, mc.a) * (-2.58 - 1.07) - shadow;
-    float metalSpec = mix(ramp * nrm.a, 1.5, step(0.99, ramp) * (1.0 - nrm.a));
-    metalSpec *= mix(1.0, 0.2, shadow);
-    spec = mix(spec, metalSpec, isMetallic);
+    if (isMetallic > 0.0) {
+        vec3 r = normalize(
+            reflect(vViewDir, normal) +
+            reflect(lightDir, normal) * NdotL
+        );
+        float m = 2.0 * sqrt(
+            r.x * r.x +
+            r.y * r.y +
+            (r.z + 1.0) * (r.z + 1.0)
+        );
+        vec4 mc = texture2D(metallicMatCap, r.xy / m + 0.5);
+
+        float ramp = 1.07 + smootherstep(0.3, 1.0, mc.a) * (-2.58 - 1.07) - shadow;
+        float metalSpec = mix(ramp * nrm.a, 1.5, step(0.99, ramp) * (1.0 - nrm.a));
+        metalSpec *= mix(1.0, 0.2, shadow);
+        spec = mix(spec, metalSpec, isMetallic);
+
+        baseColor = mix(baseColor, baseColor * adjustSat(mc.rgb, 0.0).r, isMetallic);
+        baseColor *= 1.0 + isMetallic * metallicBrightness;
+    }
 #endif
 
     // Fresnel
@@ -375,16 +387,6 @@ void main() {
     vec3 finalLighting = directionalLight + specular + rim;
     finalLighting += ambientLightColor * adjustSat(ambientTint, tintStrength);
     finalLighting *= mix(vec3(1.0), shadowTint, shadow);
-
-#ifdef IS_BODY
-    float ftmG = hasFtm ? texture2D(ftm, vUv).g : 0.0;
-    isMetallic = max(isMetallic, smootherstep(0.7, 1.0, ftmG));
-
-    if (isMetallic > 0.0) {
-        baseColor = mix(baseColor, baseColor * adjustSat(mc.rgb, 0.0).r, isMetallic);
-        baseColor *= 1.0 + isMetallic * metallicBrightness;
-    }
-#endif
 
 #if defined(IS_OUTLINE) && defined(USE_COLOR_BURN_OUTLINES)
     vec3 outlineColor = mix(vec3(1.0), finalLighting, outlineLightInfluence);
@@ -430,7 +432,7 @@ void main() {
     } else {
         // Highlight Old, but its colour is hand-picked per character in the blend: 
         // a fixed near-white turns dark hair into plastic, so the sheen follows the hair colour instead
-        color = mix(baseColor, baseColor * 2.0 + 0.05, clamp(highlight, 0.0, 1.0) * 0.5); // ponytail: 2.0, 0.05 and 0.5 eyeballed
+        color = mix(baseColor, baseColor * 2.0 + 0.05, highlight * 0.5); // ponytail: 2.0, 0.05 and 0.5 eyeballed
     }
 #elif defined(IS_BODY)
     float skin = hasFtm ? step(ftmG, 0.001) : hasId ? texture2D(idMap, vUv).r : 0.0;
