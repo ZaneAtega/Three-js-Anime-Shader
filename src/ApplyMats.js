@@ -93,8 +93,8 @@ export const ApplyMats = (instance) => {
         }
         const palette = palettes[paletteIndex];
 
-        for (const tint of ["lightTint", "rimTint", "ambientTint", "shadowTint"])
-            uniforms[tint] = { value: new THREE.Color(palette[tint]) };
+        for (const tint of ["light", "rim", "ambient", "shadow"])
+            uniforms[`${tint}Tint`] = { value: new THREE.Color(palette[`${tint}Tint`]) };
 
         uniforms.tintStrength = { value: palette.tintStrength };
         uniforms.isWarmPalette = { value: !palette.isCool };
@@ -137,12 +137,12 @@ export const ApplyMats = (instance) => {
         uniforms.bandAdd = { value: scalars.UseAdd ?? 0.0 };
     }
 
-    const getAvgColor = (d, n) => {
-        return d && n ? [
-            (d.R + n.R) / 2,
-            (d.G + n.G) / 2,
-            (d.B + n.B) / 2
-        ] : d ? [d.R, d.G, d.B] : n ? [n.R, n.G, n.B] : null;
+    const getAvgColor = (a, b) => {
+        return a && b ? [
+            (a.R + b.R) / 2,
+            (a.G + b.G) / 2,
+            (a.B + b.B) / 2
+        ] : a ? [a.R, a.G, a.B] : b ? [b.R, b.G, b.B] : null;
     };
 
     async function applyPartDefinesUniforms(part, texPrefix, matData, defines, uniforms) {
