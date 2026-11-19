@@ -43,9 +43,13 @@ uniform float rimThreshold;
 uniform vec3 outlineColor;
 uniform bool useOutlineColorAsTint;
 
+#ifdef USE_COLOR_BURN_OUTLINES
+
 uniform float outlineLightInfluence;
 uniform float outlineBurnIntensity;
 uniform float outlineMaxBrightness;
+
+#endif
 
 #endif
 
