@@ -1,7 +1,7 @@
 import * as THREE from "three";
 
 import { jsonCache, getJson, loadTex, getColor } from './utils.js';
-import { config as cfg } from "./config.js";
+import { config as cfg } from "../config/config.js";
 
 export const ApplyMats = (instance) => {
     async function warmCache() {
@@ -442,7 +442,7 @@ export const ApplyMats = (instance) => {
     }
 
     async function applyMats(useThreeMat = null, returnMatsOnly = false) {
-        if (!instance.cachedMats) instance.cachedMats = [];
+        if (!instance.cachedMats) instance.cachedMats = {};
 
         useThreeMat = useThreeMat !== null ? useThreeMat : instance.useThreeMat;
         const mats = instance.cachedMats[`${instance.skin[0]}${useThreeMat}`] || [];

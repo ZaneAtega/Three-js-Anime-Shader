@@ -6,7 +6,7 @@ import { RenderPass } from "three/examples/jsm/postprocessing/RenderPass.js";
 import { UnrealBloomPass } from "three/examples/jsm/postprocessing/UnrealBloomPass.js";
 import { SMAAPass } from "three/examples/jsm/postprocessing/SMAAPass.js";
 
-import { config as cfg } from "./config.js";
+import { config as cfg } from "../config/config.js";
 
 const NO_OUTLINES = ["Eye", "Tacet", "Fur"];
 const jsonCache = {};
@@ -204,7 +204,7 @@ function postprocessing(instance) {
     instance.renderer.outputColorSpace = THREE.SRGBColorSpace;
 }
 
-function createProxyGeometry(mesh, step = 1) {
+function createProxyGeometry(mesh, step = 32) {
     const positions = mesh.geometry.attributes.position;
     const count = positions.count;
 
@@ -234,6 +234,7 @@ function createProxyGeometry(mesh, step = 1) {
 
     const geometry = new THREE.BufferGeometry();
     geometry.setAttribute("position", new THREE.Float32BufferAttribute(simplified, 3));
+    if (step < 2) geometry.setIndex(mesh.geometry.index);
 
     /*
     const originalSize = getGeometrySize(mesh.geometry);
