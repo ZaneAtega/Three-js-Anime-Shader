@@ -141,7 +141,9 @@ async function configureOutlineMats(mats, parts, texPrefix, scale) {
             continue;
         }
 
-        mat.defines = { IS_OUTLINE: true };
+        mat.defines = mat.defines || {};
+        mat.defines.IS_OUTLINE = true;
+
         mat.side = THREE.BackSide;
         mat.transparent = true;
 

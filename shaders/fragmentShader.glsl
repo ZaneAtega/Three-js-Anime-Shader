@@ -79,6 +79,7 @@ uniform bool hasOutlineMask;
 
 uniform sampler2D eyebrowsHet;
 uniform sampler2D faceSdf;
+uniform float faceShadowWidth;
 
 #elif defined(IS_EYE)
 
@@ -254,7 +255,12 @@ void main() {
     if (shouldGlowRed)
         milkwayTex += vec3(1.0, 0.0, 0.18) * clamp(pow(facing, 2.05333) * 0.81636, 0.0, 1.0);
 
-    if (isDeniaChest || texture2D(milkwayMask, vUv).g > 0.5) {
+    if (isDeniaChest) {
+        #include <blackhole_fragment>
+        return;
+    }
+
+    if (texture2D(milkwayMask, vUv).g > 0.5) {
         gl_FragColor = vec4(baseColor + milkwayTex, 1.0);
         return;
     }
@@ -280,7 +286,7 @@ void main() {
 
     float angle = acos(RdotL) / PI * 2.0;
     angle = mix(angle - 1.0, 1.0 - angle, step(0.0, RdotL));
-    lightIntensity *= step(angle, faceShadow);
+    lightIntensity *= smoothstep(angle - faceShadowWidth, angle + faceShadowWidth, faceShadow);
 #elif defined(IS_HAIR)
     vec4 hm = texture2D(hairHm, vUv);
 

@@ -152,8 +152,10 @@ export const ApplyMats = (instance) => {
             case "Face":
                 defines.IS_FACE = true;
 
+                uniforms.faceSdf = { value: await loadTex(`${instance.TEXTURES_PATH}T_FemaleMFace_SDF.png`, false) };
+                uniforms.faceShadowWidth = { value: Math.max(scalars.SDFSmoothness ?? 0.025, scalars.ShadowWidth ?? 0.025) };
+
                 uniforms.eyebrowsHet = { value: await loadTex(`${texPrefix}_EyebrowsHET.png`, false) };
-                uniforms.faceSdf = { value: await loadTex(`${instance.TEXTURES_PATH}T_FemaleMFace01_SDF.png`, false) };
                 uniforms.outlineMask = { value: await loadTex(`${instance.TEXTURES_PATH}Face_OutlineMask.png`, false) };
 
                 break;
@@ -421,14 +423,12 @@ export const ApplyMats = (instance) => {
     function createMat(defines, uniforms, part) {
         const mat = new THREE.ShaderMaterial({
             lights: true,
+            // vertexColors: true,
             defines: defines,
             uniforms: Object.assign(Object.assign({}, THREE.UniformsLib.lights), uniforms),
             vertexShader: instance.vertexShader,
             fragmentShader: instance.fragmentShader
         });
-
-        if (cfg.USE_SCREEN_SPACE_RIM)
-            mat.fragmentShader = `#define USE_SCREEN_SPACE_RIM\n${mat.fragmentShader}`;
 
         if (defines.IS_BODY) {
             mat.fragmentShader = `#define USE_TANGENT_BASIS\n${mat.fragmentShader}`;
