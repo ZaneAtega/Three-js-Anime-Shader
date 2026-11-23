@@ -12,7 +12,7 @@ const defaults = { // -Z Forward, Y Up
     controlsOffset: { x: 0, y: 0, z: 0 },
     camOffset: { x: 0, y: 0, z: 0 },
 
-    rotHitbox: true,
+    // rotHitbox: false,
 
     // inheritVoicelines: false,
     // inheritBGM: false
@@ -22,17 +22,15 @@ export const chars = {
     Iuno: {
         parts: ["Bangs", "Hair", "Face", "Up", "Down", "Alpha", "Eye", "Tacet"],
         texPrefix: "T_R2T1YounuoMd10011",
-
         scale: 1,
 
         startAnim: "Calm",
         hairAnimSource: "Shy",
 
         camDistMult: 1.2,
-        controlsOffset: { x: 5 / 2, y: -2, z: 0 }, // 4 5
-        camOffset: { x: -20 / 2, y: 0, z: 0 },
+        controlsOffset: { x: 5, y: -2, z: 0 }, // 4 5
+        camOffset: { x: -6, y: 0, z: 0 }, // -20
 
-        rotHitbox: false,
         hitboxOffset: { x: 3.5, y: -1, z: 3.875 },
 
         msg: "Tap me, please?",
@@ -55,15 +53,25 @@ export const chars = {
         parts: ["Bangs", "Hair", "Face", "Up", "Down", "Cloth", "Eye"],
         texPrefix: "T_R2T1CalbrenaMd10011",
 
-        // Y Forward, Z Up
         scale: 0.01,
-        headRotAxis: "y",
+        flipIsFacingCamera: true,
 
-        startPose: "Hand-on-Hip",
-        startRot: { x: -160, y: 195, z: 0 },
-        camDistAxis: "y",
-        camDistMult: 0.9,
-        hitboxOffset: { x: 6, y: -77, z: -115 },
+        /*
+        startAnim: "Stand",
+        camDistMult: 0.95,
+        controlsOffset: { x: 5, y: -2, z: 0 },
+        camOffset: { x: 7, y: 0, z: 0 },
+        hitboxOffset: { x: 4.75, y: -2.5, z: -2.5 },
+        */
+
+        startAnim: "Hand-on-Hip",
+        hairAnimSource: "body",
+
+        camDistMult: 1,
+        controlsOffset: { x: 1.75, y: 0, z: 0 },
+        camOffset: { x: 20, y: 0, z: 0 },
+
+        hitboxOffset: { x: 4, y: -3, z: 1.5 },
 
         msg: "Tap me.",
         introVoicelines: ["play_favor_word_jiabeilina_sys_jointeam_01"],
@@ -89,6 +97,7 @@ export const chars = {
         controlsOffset: { x: 8, y: -3, z: 0 },
         camOffset: { x: 8, y: 0, z: 0 },
 
+        rotHitbox: true,
         hitboxOffset: { x: 7.75, y: 85, z: -103.25 },
 
         msg: "Go ahead, tap me~",

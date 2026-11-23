@@ -31,3 +31,4 @@ Just show me what you're making with it! (credits appreciated)
     * Depth-Based Edge Detection
     * Helped me figure out how some textures are meant to be used
 * [Jonn](https://wheresjonn.gumroad.com/) - Went over his shader in Blender to get a general idea of how Denia's arms and legs worked
+* Game Assets: HoyoToon, sentination1999, encore.moe, startorch.academy

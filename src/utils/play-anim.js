@@ -1,7 +1,7 @@
 import * as THREE from "three";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 
-let gltfLoader = new GLTFLoader();
+const gltfLoader = new GLTFLoader();
 
 const _playClip = (mixer, clip) => mixer.clipAction(clip).setLoop(THREE.LoopRepeat, Infinity).play();
 
