@@ -69,8 +69,8 @@ export const chars = {
         startAnim: "Hand-on-Hip",
         hairAnimSource: "body",
 
-        camDistMult: 1,
-        controlsOffset: { x: 1.75, y: 0, z: 0 },
+        camDistMult: 0.975,
+        controlsOffset: { x: 1.75, y: -3, z: 0 },
         camOffset: { x: 20, y: 0, z: 0 },
 
         hitboxOffset: { x: 4, y: -3, z: 1.5 },
@@ -96,7 +96,8 @@ export const chars = {
         // hairAnimExcl: [2], // Hair.glb
         // hairAnimIncl: [1, 2, 3, 60, 61, 65, 66], // Hair.glb
 
-        controlsOffset: { x: 8, y: -3, z: 0 },
+        camDistMult: 0.975,
+        controlsOffset: { x: 8, y: -2, z: 0 },
         camOffset: { x: 8, y: 0, z: 0 },
 
         rotHitbox: true,
