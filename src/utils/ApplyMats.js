@@ -310,18 +310,19 @@ export const ApplyMats = (instance) => {
                         uniforms.gCutoff = { value: 0.55 }; // 0.825
                         break;
                     case "Cloth":
-                        uniforms.outlineMask = { value: await loadTex(`${texPrefix}_OutlineMask.png`, false) };
                         defines.HAS_MILKWAY = true;
+                        uniforms.outlineMask = { value: await loadTex(`${texPrefix}_OutlineMask.png`, false) };
                         uniforms.sparkleTiling = { value: 10.0 };
                         break;
                     case "Hair":
                         defines.HAS_FX = true;
-                        uniforms.invSparkleTiling = { value: 1.0 / 6.0 };
                         uniforms.addStars = { value: false };
+                        uniforms.starTiling = { value: 5.0 };
+                        uniforms.invSparkleTiling = { value: 1.0 / 6.0 };
                         break;
                     case "Down":
-                        defines.HAS_FX = true;
                         defines.HAS_MILKWAY = true;
+                        defines.HAS_FX = true;
                         uniforms.sparkleTiling = { value: 10.0 };
                         break;
                 }
@@ -332,15 +333,15 @@ export const ApplyMats = (instance) => {
 
                 switch (part) {
                     case "Fx":
-                        uniforms.aCutoff = { value: 0.8 };
                         defines.HAS_MILKWAY = true;
+                        uniforms.aCutoff = { value: 0.8 };
                         uniforms.isDeniaChest = { value: true };
                         break;
                     case "Up":
-                        uniforms.gCutoff = { value: 0.55 };
                         defines.HAS_MILKWAY = true;
-                        uniforms.shouldGlowRed = { value: true };
+                        uniforms.gCutoff = { value: 0.55 };
                         uniforms.time = { value: 0.0 };
+                        uniforms.shouldGlowRed = { value: true };
                         break;
                     case "Cloth":
                         defines.HAS_MILKWAY = true;
@@ -348,12 +349,13 @@ export const ApplyMats = (instance) => {
                         break;
                     case "Hair":
                         defines.HAS_FX = true;
-                        uniforms.invSparkleTiling = { value: 1.0 / 6.0 };
                         uniforms.addStars = { value: false };
+                        uniforms.starTiling = { value: 5.0 };
+                        uniforms.invSparkleTiling = { value: 1.0 / 6.0 };
                         break;
                     case "Down":
-                        defines.HAS_FX = true;
                         defines.HAS_MILKWAY = true;
+                        defines.HAS_FX = true;
                         uniforms.sparkleTiling = { value: 10.0 };
                         uniforms.subsurfaceColor.value = [0, 0, 0];
                         break;
@@ -368,8 +370,8 @@ export const ApplyMats = (instance) => {
                         uniforms.gCutoff = { value: 0.55 };
                         break;
                     case "Fx":
-                        uniforms.aCutoff = { value: 0.8 };
                         defines.HAS_MILKWAY = true;
+                        uniforms.aCutoff = { value: 0.8 };
                         uniforms.isDeniaChest = { value: true };
                         break;
                     case "Cloth":

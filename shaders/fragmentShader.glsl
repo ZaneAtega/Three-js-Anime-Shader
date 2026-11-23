@@ -227,6 +227,7 @@ void main() {
     vec3 normal = vNormal;
 
     vec4 nrm = hasNrm ? texture2D(nrm, vUv) : vec4(0.5, 0.5, 0.0, 0.0);
+    float invNrmA = 1.0 - nrm.a;
     float isMetallic = 0.0;
 
     if (hasNrm) {
@@ -238,7 +239,7 @@ void main() {
         normal = normalize(tbn * tangentNormal);
 #endif
 
-        isMetallic = max(nrm.b * step(0.5, nrm.b), (1.0 - nrm.a) * step(0.425, 1.0 - nrm.a));
+        isMetallic = max(nrm.b * step(0.5, nrm.b), invNrmA * step(0.425, invNrmA));
     }
 
     float NdotV = dot(normal, vViewDir);
@@ -246,11 +247,13 @@ void main() {
 
 #if defined(HAS_MILKWAY) || defined(HAS_FX)
     vec2 time = vec2(time == 0.0 ? 1.0 : time * sparkleTimeSpeed);
+    vec2 starTilingOffset = invStarTiling * time;
+    vec2 sparkleTilingOffset = invSparkleTiling * time;
 #endif
 
 #ifdef HAS_MILKWAY
-    vec3 milkwayTex = texture2D(milkway, vViewDir.xy * starTiling + invStarTiling * time).rgb;
-    milkwayTex += vec3(0.108, 0.386, 1.0) * texture2D(sparkle, vViewDir.xy * sparkleTiling + invSparkleTiling * time).r;
+    vec3 milkwayTex = texture2D(milkway, vViewDir.xy * starTiling + starTilingOffset).rgb;
+    milkwayTex += vec3(0.108, 0.386, 1.0) * texture2D(sparkle, vViewDir.xy * sparkleTiling + sparkleTilingOffset).r;
 
     if (shouldGlowRed)
         milkwayTex += vec3(1.0, 0.0, 0.18) * clamp(pow(facing, 2.05333) * 0.81636, 0.0, 1.0);
@@ -268,9 +271,10 @@ void main() {
 
     vec3 lightDir = directionalLights[0].direction;
     float NdotL = max(dot(normal, lightDir), 0.0);
+    float halfNdotL = NdotL * 0.5;
 
     float aoShadow = 1.0 - smoothstep(0.0, 0.2, useMainTexA ? baseTex.a : 0.5);
-    float baseShadow = smootherstep(0.2, 0.0, NdotL * 0.5);
+    float baseShadow = smootherstep(0.2, 0.0, halfNdotL);
     float shadow = mix(baseShadow, 1.0, aoShadow);
     float lightIntensity = 1.0 - shadow;
 
@@ -281,7 +285,7 @@ void main() {
     float faceShadow = mix(
         texture2D(faceSdf, vec2(1.0 - vUv.x, vUv.y)).r,
         texture2D(faceSdf, vUv).r,
-        step(0.5, RdotL * 0.5 + 0.5)
+        step(0.0, RdotL)
     );
 
     float angle = acos(RdotL) / PI * 2.0;
@@ -292,20 +296,22 @@ void main() {
 
 #ifdef USE_TANGENT_BASIS
     // The hair group feeds a constant (0, 1, 1) "normal map" through WuwaNormals: a fixed tilt along T and B
-    float NdotL = dot(normalize(-vTangent + vBitangent + vNormal), lightDir); 
+    float hairHalfNdotL = dot(normalize(-vTangent + vBitangent + vNormal), lightDir) * 0.5;
+#else
+    float hairHalfNdotL = halfNdotL;
 #endif
 
     float highlight = 0.0;
 
     if (!hasRamp || !hasBands) {
         aoShadow = useMainTexA ? 1.0 - smoothstep(0.0, 0.26, baseTex.a) : 0.0;
-        baseShadow = smootherstep(0.06, 0.0, NdotL * 0.5);
+        baseShadow = smootherstep(0.06, 0.0, hairHalfNdotL);
         shadow = mix(baseShadow, 1.0, aoShadow);
         highlight = max(hm.r - shadow, 0.0) * smoothstep(0.5, 1.0, NdotV);
     }
 
     if (hasRamp) {
-        float halfLambert = NdotL * 0.5 + 0.5;
+        float halfLambert = hairHalfNdotL + 0.5;
         float width = max(hairShadow.y, 0.001);
         float offset = hairOffset.x * pow(max(hm.g * hairOffset.y, 0.00001), hairOffset.z);
 
@@ -324,7 +330,7 @@ void main() {
     float cm = -vViewPos.z * 100.0;
     float near = 0.5 * ((50.0 - min(cm, 50.0)) * 0.02 - 1.0 + pow((3000.0 - min(cm, 3000.0)) / 3000.0, 8.0));
     float isLightBehind = smoothstep(0.0, 1.0, (-0.5 - dot(lightDir, vViewDir)) * 2.0);
-    float reach = ((NdotL + 1.0) * 0.00375 + 0.0075) * max(0.8 - max(NdotV, 0.0), 0.0) * (isLightBehind + 1.0) * (near + 1.0);
+    float reach = ((NdotL + 1.0) * 0.00375 + 0.0075) * max(facing - 0.2, 0.0) * (isLightBehind + 1.0) * (near + 1.0);
 
     vec2 dir = normalize(normal.xy + 0.0001) * vec2(1.0, 0.5) * rimWidth * reach;
     float gap = (linearizeDepth(rimDepth, gl_FragCoord.xy / rimScreen + dir) - -vViewPos.z);
@@ -348,9 +354,9 @@ void main() {
 
     // Specular (Blinn-Phong)
     float NdotH = max(dot(normal, normalize(lightDir + vViewDir)), 0.0);
-    float spec = pow(NdotH, specularExp) * (1.03 - nrm.a) * lightIntensity;
+    float spec = pow(NdotH, specularExp) * (invNrmA + 0.03) * lightIntensity;
     spec = (-0.3 + clamp((spec - 0.01) / 0.51, 0.0, 1.0) * 5.52) * 0.1; // Suppress weak highlights, boost stronger ones
-    spec *= 2.0 - nrm.a;
+    spec *= invNrmA + 1.0;
 
 #ifdef IS_BODY
     float ftmG = hasFtm ? texture2D(ftm, vUv).g : 0.0;
@@ -401,7 +407,7 @@ void main() {
     outlineColor *= mix(baseColor, colorBurn, outlineBurnIntensity);
 
     float brightness = max(outlineColor.r, max(outlineColor.g, outlineColor.b));
-    outlineColor *= min(1.0, outlineMaxBrightness / max(brightness, 0.001));
+    outlineColor *= min(outlineMaxBrightness / max(brightness, 0.001), 1.0);
 
     gl_FragColor = vec4(outlineColor, 1.0);
     return;
@@ -442,7 +448,7 @@ void main() {
     }
 #elif defined(IS_BODY)
     float skin = hasFtm ? step(ftmG, 0.001) : hasId ? texture2D(idMap, vUv).r : 0.0;
-    float sss = (smootherstep(0.25, 0.0, NdotL * 0.5) - baseShadow) * 3.0 - aoShadow - isMetallic;
+    float sss = (smootherstep(0.25, 0.0, halfNdotL) - baseShadow) * 3.0 - aoShadow - isMetallic;
     vec3 middleTint = isWarmPalette ? (lightTint + shadowTint) * 0.5 : vec3(1.0);
 
     if (any(greaterThan(subsurfaceColor, vec3(0.0))))
@@ -482,15 +488,18 @@ void main() {
 #endif
 
 #ifdef HAS_FX
+    vec2 starUv = vUv * starTiling;
+    vec2 starUvAnimated = starUv + starTilingOffset;
+
     if (addStars) {
-        color += texture2D(fx, vUv * starTiling + invStarTiling * time).r * texture2D(fx, vUv).a;
+        color += texture2D(fx, starUvAnimated).r * texture2D(fx, vUv).a;
     } else {
-        float stars = texture2D(fx, vUv * starTiling).r * texture2D(fx, vUv).a;
+        float stars = texture2D(fx, starUv).r * texture2D(fx, vUv).a;
 
-        vec2 sparkleUv = vViewDir.xy * abs(vViewPos.z) * invSparkleTiling + invSparkleTiling * time;
-        sparkleUv = mix(sparkleUv, vUv, 0.75);
+        vec2 sparkleUv = vViewDir.xy * abs(vViewPos.z) * invSparkleTiling + sparkleTilingOffset;
+        sparkleUv = mix(sparkleUv, starUvAnimated, 0.75);
 
-        color += smoothstep(0.02, 0.08, texture2D(sparkle, sparkleUv).r) * step(0.05, stars);
+        color += pow(texture2D(sparkle, sparkleUv).r, 0.2) * step(0.15, stars);
     }
 #endif
 
