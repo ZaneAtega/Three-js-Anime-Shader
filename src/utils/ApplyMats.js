@@ -166,7 +166,7 @@ export const ApplyMats = (instance) => {
                 uniforms.eyeEm = { value: await loadTex(`${texPrefix}T_HDMF_EM.png`, false) };
                 uniforms.eyeDepth = { value: 1.5 * (scalars.ParallaxHeight ?? 0.1) };
 
-                uniforms.useEyeHighlights = { value: instance.activeChar.useEyeHighlights !== false };
+                uniforms.useEyeHighlights = { value: instance.activeChar.useEyeHighlights };
                 if (!uniforms.useEyeHighlights.value) break;
 
                 uniforms.eyeHighlight = { value: await loadTex(`${texPrefix}T_Highlight_1.png`, false) };
@@ -178,11 +178,6 @@ export const ApplyMats = (instance) => {
                 defines.IS_HAIR = true;
                 uniforms.hairHm = { value: await loadTex(`${texPrefix}_HM.png`, false) };
                 texPrefix = texPrefix.replace(part, "");
-
-                if (instance.activeChar.outlineHbi !== undefined) {
-                    uniforms.outlineBurnIntensity = { value: instance.activeChar.outlineHbi };
-                    // uniforms.outlineMaxBrightness = { value: 1.0 };
-                }
 
                 if (part !== "Bangs") {
                     uniforms.hasRamp = { value: false };

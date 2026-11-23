@@ -204,7 +204,7 @@ function postprocessing(instance) {
     instance.renderer.outputColorSpace = THREE.SRGBColorSpace;
 }
 
-function createProxyGeometry(mesh, step = 32) {
+function createProxyGeometry(mesh, rot, step = 32) {
     const positions = mesh.geometry.attributes.position;
     const count = positions.count;
 
@@ -221,9 +221,11 @@ function createProxyGeometry(mesh, step = 32) {
     for (let i = 0; i < count; i += step) {
         pos.fromBufferAttribute(positions, i);
 
-        pos.sub(center);
-        pos.applyAxisAngle(axis, -Math.PI / 2);
-        pos.add(center);
+        if (rot) {
+            pos.sub(center);
+            pos.applyAxisAngle(axis, -Math.PI / 2);
+            pos.add(center);
+        }
 
         pos.applyMatrix4(mesh.matrixWorld);
 

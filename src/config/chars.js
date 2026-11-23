@@ -1,17 +1,39 @@
+const defaults = { // -Z Forward, Y Up
+    useEyeHighlights: true,
+
+    headRotAxis: "x",
+    // flipIsFacingCamera: false,
+    headRotAxisUpDown: "z",
+
+    // startRot: { x: 0, y: 0, z: 0 },
+
+    camDistAxis: "z",
+    camDistMult: 1,
+    controlsOffset: { x: 0, y: 0, z: 0 },
+    camOffset: { x: 0, y: 0, z: 0 },
+
+    rotHitbox: true,
+
+    // inheritVoicelines: false,
+    // inheritBGM: false
+};
+
 export const chars = {
     Iuno: {
         parts: ["Bangs", "Hair", "Face", "Up", "Down", "Alpha", "Eye", "Tacet"],
         texPrefix: "T_R2T1YounuoMd10011",
 
-        // Y Forward, Z Up
         scale: 1,
-        headRotAxis: "x",
 
-        startPose: "Stand",
-        startRot: { x: 8.75, y: -12.25, z: -90 },
-        camDistAxis: "z",
-        camDistMult: 0.9375,
-        hitboxOffset: { x: 1.75, y: 5, z: -16 },
+        startAnim: "Calm",
+        hairAnimSource: "Shy",
+
+        camDistMult: 1.2,
+        controlsOffset: { x: 5 / 2, y: -2, z: 0 }, // 4 5
+        camOffset: { x: -20 / 2, y: 0, z: 0 },
+
+        rotHitbox: false,
+        hitboxOffset: { x: 3.5, y: -1, z: 3.875 },
 
         msg: "Tap me, please?",
         voicelines: [
@@ -56,9 +78,7 @@ export const chars = {
         parts: ["Bangs", "Hair", "Face", "Up", "Down", "Cloth", "Fur", "Eye"],
         texPrefix: "T_R2T1DaniyaMd10011",
 
-        // -Z Forward, Y Up
         scale: 0.01,
-        headRotAxis: "x",
         flipIsFacingCamera: true,
 
         startAnim: "Shy",
@@ -66,9 +86,8 @@ export const chars = {
         // hairAnimExcl: [2], // Hair.glb
         // hairAnimIncl: [1, 2, 3, 60, 61, 65, 66], // Hair.glb
 
-        camDistAxis: "z",
-        camDistMult: 1,
-        camOffset: { x: 7.75, y: -3, z: 0 },
+        controlsOffset: { x: 8, y: -3, z: 0 },
+        camOffset: { x: 8, y: 0, z: 0 },
 
         hitboxOffset: { x: 7.75, y: 85, z: -103.25 },
 
@@ -82,7 +101,8 @@ export const chars = {
 
         startAnim: "Complain",
         camDistMult: 1.1,
-        camOffset: { x: 3, y: -2, z: 0 },
+        controlsOffset: { x: 3, y: -2, z: 0 },
+        camOffset: { x: 4, y: 0, z: 0 },
         hitboxOffset: { x: 3, y: 82, z: -94 },
 
         msg: "Tap me.",
@@ -92,14 +112,13 @@ export const chars = {
     Denia_3: {
         parts: ["Body", "Cloth", "Fx", "Hair", "Eye", "Bangs", "Face", "Down"],
 
-        // -Z Forward, Y Up
         headRotAxis: "y",
         headRotAxisUpDown: "x",
 
         startPose: "Hand-on-Hip",
         hairAnimSource: null,
         camDistMult: 1.175,
-        camOffset: { x: 0, y: 0, z: 0 },
+        controlsOffset: { x: 0, y: 0, z: 0 },
         hitboxOffset: { x: -95, y: 80, z: -93.75 },
 
         inheritVoicelines: true,
@@ -114,16 +133,15 @@ export const chars = {
 };
 
 for (const [char, v] of Object.entries(chars)) {
-    let cfg = v;
-
+    let cfg = { ...defaults, ...v };
     if (cfg.startPose) cfg.startAnim = "";
-    if (!cfg.camDistMult) cfg.camDistMult = 1;
 
     const split = char.split('_');
 
     if (isNaN(split.pop())) {
         cfg.voicelinesPath = char;
         cfg.bgmClass = char.toLowerCase();
+        chars[char] = cfg;
         continue;
     }
 

@@ -6,7 +6,7 @@ let gltfLoader = new GLTFLoader();
 const _playClip = (mixer, clip) => mixer.clipAction(clip).setLoop(THREE.LoopRepeat, Infinity).play();
 
 const _filterTrack = (name, mode, excl, incl) => {
-    if (name.startsWith("Root.") || name.startsWith("Bip001Head.")) return false;
+    if (name.startsWith("Root") || name.startsWith("Bip001Head.")) return false;
 
     const isHair = name.includes("Hair");
     const isIncl = incl.some(bone => name.includes(bone));
