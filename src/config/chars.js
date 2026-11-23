@@ -1,3 +1,5 @@
+import { lerp } from "../utils/utils.js";
+
 const defaults = { // -Z Forward, Y Up
     useEyeHighlights: true,
 
@@ -28,8 +30,8 @@ export const chars = {
         hairAnimSource: "Shy",
 
         camDistMult: 1.2,
-        controlsOffset: { x: 5, y: -2, z: 0 }, // 4 5
-        camOffset: { x: -6, y: 0, z: 0 }, // -20
+        controlsOffset: { x: lerp(5, -10, 0.05), y: -2, z: 0 },
+        camOffset: { x: lerp(-6, -20, 0.05), y: 0, z: 0 },
 
         hitboxOffset: { x: 3.5, y: -1, z: 3.875 },
 
