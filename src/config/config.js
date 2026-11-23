@@ -37,7 +37,7 @@ export const config = {
         hasNrm: { value: false },
 
         time: { value: 0.0 },
-        sparkTimeSpeed: { value: -0.05 },
+        sparkleTimeSpeed: { value: -0.05 },
         starTiling: { value: 4.0 },
         invSparkleTiling: { value: 0.0 },
         sparkleTiling: { value: 4.0 },

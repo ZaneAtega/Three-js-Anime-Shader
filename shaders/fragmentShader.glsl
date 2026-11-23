@@ -152,7 +152,7 @@ uniform vec3 skinSubsurfaceColor;
 #if defined(HAS_MILKWAY) || defined(HAS_FX)
 uniform sampler2D sparkle;
 uniform float time;
-uniform float sparkTimeSpeed;
+uniform float sparkleTimeSpeed;
 uniform float starTiling;
 uniform float invStarTiling;
 uniform float invSparkleTiling;
@@ -245,7 +245,7 @@ void main() {
     float facing = 1.0 - max(NdotV, 0.0);
 
 #if defined(HAS_MILKWAY) || defined(HAS_FX)
-    vec2 time = vec2(time == 0.0 ? 1.0 : time * sparkTimeSpeed);
+    vec2 time = vec2(time == 0.0 ? 1.0 : time * sparkleTimeSpeed);
 #endif
 
 #ifdef HAS_MILKWAY
@@ -486,8 +486,11 @@ void main() {
         color += texture2D(fx, vUv * starTiling + invStarTiling * time).r * texture2D(fx, vUv).a;
     } else {
         float stars = texture2D(fx, vUv * starTiling).r * texture2D(fx, vUv).a;
+
         vec2 sparkleUv = vViewDir.xy * abs(vViewPos.z) * invSparkleTiling + invSparkleTiling * time;
-        color += texture2D(sparkle, sparkleUv).r * step(0.05, stars) * 2.0;
+        sparkleUv = mix(sparkleUv, vUv, 0.75);
+
+        color += smoothstep(0.02, 0.08, texture2D(sparkle, sparkleUv).r) * step(0.05, stars);
     }
 #endif
 
