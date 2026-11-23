@@ -154,8 +154,6 @@ uniform sampler2D sparkle;
 uniform float time;
 uniform float sparkleTimeSpeed;
 uniform float starTiling;
-uniform float invStarTiling;
-uniform float invSparkleTiling;
 #endif
 
 #ifdef HAS_MILKWAY
@@ -169,6 +167,7 @@ uniform bool isDeniaChest;
 #ifdef HAS_FX
 uniform sampler2D fx;
 uniform bool addStars;
+uniform float invSparkleTiling;
 #endif
 
 /* --- */
@@ -246,14 +245,13 @@ void main() {
     float facing = 1.0 - max(NdotV, 0.0);
 
 #if defined(HAS_MILKWAY) || defined(HAS_FX)
-    vec2 time = vec2(time == 0.0 ? 1.0 : time * sparkleTimeSpeed);
-    vec2 starTilingOffset = invStarTiling * time;
-    vec2 sparkleTilingOffset = invSparkleTiling * time;
+    float time = time == 0.0 ? 1.0 : time * sparkleTimeSpeed;
+    vec2 timeUvOffset = vec2(time, -time);
 #endif
 
 #ifdef HAS_MILKWAY
-    vec3 milkwayTex = texture2D(milkway, vViewDir.xy * starTiling + starTilingOffset).rgb;
-    milkwayTex += vec3(0.108, 0.386, 1.0) * texture2D(sparkle, vViewDir.xy * sparkleTiling + sparkleTilingOffset).r;
+    vec3 milkwayTex = texture2D(milkway, vViewDir.xy * starTiling + timeUvOffset).rgb;
+    milkwayTex += vec3(0.108, 0.386, 1.0) * texture2D(sparkle, vViewDir.xy * sparkleTiling + timeUvOffset).r;
 
     if (shouldGlowRed)
         milkwayTex += vec3(1.0, 0.0, 0.18) * clamp(pow(facing, 2.05333) * 0.81636, 0.0, 1.0);
@@ -489,14 +487,14 @@ void main() {
 
 #ifdef HAS_FX
     vec2 starUv = vUv * starTiling;
-    vec2 starUvAnimated = starUv + starTilingOffset;
+    vec2 starUvAnimated = starUv + timeUvOffset;
 
     if (addStars) {
         color += texture2D(fx, starUvAnimated).r * texture2D(fx, vUv).a;
     } else {
         float stars = texture2D(fx, starUv).r * texture2D(fx, vUv).a;
 
-        vec2 sparkleUv = vViewDir.xy * abs(vViewPos.z) * invSparkleTiling + sparkleTilingOffset;
+        vec2 sparkleUv = vViewDir.xy * abs(vViewPos.z) * invSparkleTiling + timeUvOffset;
         sparkleUv = mix(sparkleUv, starUvAnimated, 0.75);
 
         color += pow(texture2D(sparkle, sparkleUv).r, 0.2) * step(0.15, stars);

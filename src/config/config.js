@@ -36,14 +36,7 @@ export const config = {
         isFur: { value: false },
         hasNrm: { value: false },
 
-        time: { value: 0.0 },
-        sparkleTimeSpeed: { value: -0.05 },
-        starTiling: { value: 4.0 },
-        invSparkleTiling: { value: 0.0 },
-        sparkleTiling: { value: 4.0 },
-        shouldGlowRed: { value: false },
-        isDeniaChest: { value: false },
-        addStars: { value: true }
+        time: { value: 0.0 }
     },
     DIR_LIGHT_RADIUS: 100,
     DIR_LIGHT_INTENSITY: 0.4

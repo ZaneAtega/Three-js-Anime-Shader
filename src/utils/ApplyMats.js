@@ -312,18 +312,19 @@ export const ApplyMats = (instance) => {
                     case "Cloth":
                         defines.HAS_MILKWAY = true;
                         uniforms.outlineMask = { value: await loadTex(`${texPrefix}_OutlineMask.png`, false) };
-                        uniforms.sparkleTiling = { value: 10.0 };
+                        uniforms.sparkleTiling = { value: 6.0 };
                         break;
                     case "Hair":
                         defines.HAS_FX = true;
-                        uniforms.addStars = { value: false };
                         uniforms.starTiling = { value: 5.0 };
+                        uniforms.addStars = { value: false };
                         uniforms.invSparkleTiling = { value: 1.0 / 6.0 };
                         break;
                     case "Down":
                         defines.HAS_MILKWAY = true;
                         defines.HAS_FX = true;
-                        uniforms.sparkleTiling = { value: 10.0 };
+                        uniforms.sparkleTiling = { value: 6.0 }; // Same as Cloth
+                        uniforms.addStars = { value: true };
                         break;
                 }
 
@@ -335,29 +336,35 @@ export const ApplyMats = (instance) => {
                     case "Fx":
                         defines.HAS_MILKWAY = true;
                         uniforms.aCutoff = { value: 0.8 };
+                        uniforms.sparkleTiling = { value: 4.0 };
                         uniforms.isDeniaChest = { value: true };
                         break;
                     case "Up":
                         defines.HAS_MILKWAY = true;
                         uniforms.gCutoff = { value: 0.55 };
                         uniforms.time = { value: 0.0 };
+                        uniforms.sparkleTiling = { value: 4.0 };
                         uniforms.shouldGlowRed = { value: true };
                         break;
+
+                    // Same as Denia, except: − Cloth outlineMask, + Down subsurfaceColor
+
                     case "Cloth":
                         defines.HAS_MILKWAY = true;
-                        uniforms.sparkleTiling = { value: 10.0 };
+                        uniforms.sparkleTiling = { value: 6.0 };
                         break;
                     case "Hair":
                         defines.HAS_FX = true;
-                        uniforms.addStars = { value: false };
                         uniforms.starTiling = { value: 5.0 };
+                        uniforms.addStars = { value: false };
                         uniforms.invSparkleTiling = { value: 1.0 / 6.0 };
                         break;
                     case "Down":
                         defines.HAS_MILKWAY = true;
                         defines.HAS_FX = true;
-                        uniforms.sparkleTiling = { value: 10.0 };
+                        uniforms.sparkleTiling = { value: 6.0 };
                         uniforms.subsurfaceColor.value = [0, 0, 0];
+                        uniforms.addStars = { value: true };
                         break;
                 }
 
@@ -372,11 +379,12 @@ export const ApplyMats = (instance) => {
                     case "Fx":
                         defines.HAS_MILKWAY = true;
                         uniforms.aCutoff = { value: 0.8 };
+                        uniforms.sparkleTiling = { value: 4.0 };
                         uniforms.isDeniaChest = { value: true };
                         break;
                     case "Cloth":
                         defines.HAS_MILKWAY = true;
-                        uniforms.sparkleTiling = { value: 10.0 };
+                        uniforms.sparkleTiling = { value: 6.0 };
                         break;
                 }
                 break;
@@ -385,9 +393,13 @@ export const ApplyMats = (instance) => {
         uniforms.hasOutlineMask = { value: !!uniforms.outlineMask?.value };
     }
 
-    async function applyUniformsBasedOnDefines(part, defines, uniforms) {
-        if (defines.HAS_MILKWAY || defines.HAS_FX)
-            uniforms.invStarTiling = { value: 1.0 / uniforms.starTiling.value };
+    async function applyUniformsBasedOnDefines(part, matData, defines, uniforms) {
+        const { Scalars: scalars = {} } = matData;
+
+        if (defines.HAS_MILKWAY || defines.HAS_FX) {
+            uniforms.sparkleTimeSpeed = { value: scalars.SparkleTimeSpeed === 0.0 ? -0.03 : scalars.SparkleTimeSpeed ?? -0.03 };
+            if (!uniforms.starTiling) uniforms.starTiling = { value: (uniforms.sparkleTiling?.value ?? 6.0) / 2 };
+        }
 
         if (defines.HAS_MILKWAY) {
             const milkway = await loadTex(`${instance.TEXTURES_PATH}T_Wenli_${part === "Cloth" ? 230046 : 10025}.png`);
@@ -398,10 +410,14 @@ export const ApplyMats = (instance) => {
             uniforms.milkway = { value: milkway };
             uniforms.sparkle = { value: sparkle };
 
-            if (!uniforms.isDeniaChest.value)
-                uniforms.milkwayMask = { value: await loadTex(`${instance.TEXTURES_PATH}${instance.charName}/${instance.activeChar.texPrefix}${part}_MilkwayMask.png`, false) };
+            if (!uniforms.isDeniaChest) {
+                uniforms.isDeniaChest = { value: false };
 
-            uniforms.invSparkleTiling = { value: 1.0 / uniforms.sparkleTiling.value };
+                const path = `${instance.TEXTURES_PATH}${instance.charName}/${instance.activeChar.texPrefix}${part}_MilkwayMask.png`;
+                uniforms.milkwayMask = { value: await loadTex(path, false) };
+            }
+
+            uniforms.shouldGlowRed = { value: uniforms.shouldGlowRed?.value ?? false };
         }
 
         if (defines.HAS_FX) {
@@ -409,7 +425,7 @@ export const ApplyMats = (instance) => {
             fx.wrapS = fx.wrapT = THREE.RepeatWrapping;
             uniforms.fx = { value: fx };
 
-            if (uniforms.sparkleTiling.value > 0.0) {
+            if (uniforms.invSparkleTiling?.value > 0.0) {
                 const sparkle = await loadTex(`${instance.TEXTURES_PATH}T_Sparkle_SDF.png`, false);
                 sparkle.wrapS = sparkle.wrapT = THREE.RepeatWrapping;
                 uniforms.sparkle = { value: sparkle };
@@ -482,7 +498,7 @@ export const ApplyMats = (instance) => {
 
             await applyPartDefinesUniforms(part, texPrefix, matData, defines, uniforms);
             await applyCharDefinesUniforms(part, texPrefix, defines, uniforms);
-            await applyUniformsBasedOnDefines(part, defines, uniforms);
+            await applyUniformsBasedOnDefines(part, matData, defines, uniforms);
 
             mats.push(createMat(defines, uniforms, part));
         }
