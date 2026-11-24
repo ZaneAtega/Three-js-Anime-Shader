@@ -2,6 +2,8 @@
 #include <packing>
 #include <lights_pars_begin>
 
+#define LUM vec3(0.2126, 0.7152, 0.0722)
+
 // Visual Controls
 
 uniform vec3 lightTint;
@@ -43,13 +45,13 @@ uniform float rimThreshold;
 uniform vec3 outlineColor;
 uniform bool useOutlineColorAsTint;
 
-#ifdef USE_COLOR_BURN_OUTLINES
+    #ifdef USE_COLOR_BURN_OUTLINES
 
 uniform float outlineLightInfluence;
 uniform float outlineBurnIntensity;
 uniform float outlineMaxBrightness;
 
-#endif
+    #endif
 
 #endif
 
@@ -88,6 +90,7 @@ uniform float eyeDepth;
 
 uniform sampler2D eyeHighlight;
 uniform sampler2D eyeHighlight2;
+uniform vec3 eyeHighlightColor;
 uniform bool useEyeHighlights;
 
 #else
@@ -143,7 +146,10 @@ uniform sampler2D idMap;
 uniform bool hasId;
 
 uniform vec3 subsurfaceColor;
+uniform bool hasSubsurfaceColor;
+
 uniform vec3 skinSubsurfaceColor;
+uniform bool hasSkinSubsurfaceColor;
 
 #endif
 
@@ -182,9 +188,7 @@ varying vec3 vNormal;
 varying vec3 vTangent;
 varying vec3 vBitangent;
 
-const vec3 LUM = vec3(0.2126, 0.7152, 0.0722);
 vec3 adjustSat(vec3 c, float sat) { return mix(vec3(dot(c, LUM)), c, sat); }
-
 float smootherstep(float e0, float e1, float x);
 float GTTonemap(float x);
 
@@ -212,7 +216,6 @@ void main() {
 #endif
 
     vec3 baseColor = baseTex.rgb;
-
     if (baseTex.a < aCutoff || gCutoff > 0.0 && distance(baseColor, vec3(0.0, 1.0, 0.0)) < gCutoff) discard;
 
 #ifdef IS_OUTLINE
@@ -254,7 +257,7 @@ void main() {
     milkwayTex += vec3(0.108, 0.386, 1.0) * texture2D(sparkle, vViewDir.xy * sparkleTiling + timeUvOffset).r;
 
     if (shouldGlowRed)
-        milkwayTex += vec3(1.0, 0.0, 0.18) * clamp(pow(facing, 2.05333) * 0.81636, 0.0, 1.0);
+        milkwayTex += vec3(1.0, 0.0, 0.18) * pow(facing, 2.05333) * 0.81636;
 
     if (isDeniaChest) {
         #include <blackhole_fragment>
@@ -271,10 +274,15 @@ void main() {
     float NdotL = max(dot(normal, lightDir), 0.0);
     float halfNdotL = NdotL * 0.5;
 
+#ifndef IS_HAIR
     float aoShadow = 1.0 - smoothstep(0.0, 0.2, useMainTexA ? baseTex.a : 0.5);
     float baseShadow = smootherstep(0.2, 0.0, halfNdotL);
     float shadow = mix(baseShadow, 1.0, aoShadow);
     float lightIntensity = 1.0 - shadow;
+#else 
+    float shadow;
+    float lightIntensity;
+#endif
 
 #ifdef IS_FACE
     vec3 right = normalize(cross(vec3(0.0, 1.0, 0.0), normal));
@@ -299,24 +307,31 @@ void main() {
     float hairHalfNdotL = halfNdotL;
 #endif
 
-    float highlight = 0.0;
+    float highlight;
 
     if (!hasRamp || !hasBands) {
-        aoShadow = useMainTexA ? 1.0 - smoothstep(0.0, 0.26, baseTex.a) : 0.0;
-        baseShadow = smootherstep(0.06, 0.0, hairHalfNdotL);
-        shadow = mix(baseShadow, 1.0, aoShadow);
+        shadow = mix(
+            smootherstep(0.06, 0.0, hairHalfNdotL),
+            1.0,
+            useMainTexA ? 1.0 - smoothstep(0.0, 0.26, baseTex.a) : 0.0
+        );
+
         highlight = max(hm.r - shadow, 0.0) * smoothstep(0.5, 1.0, NdotV);
     }
 
     if (hasRamp) {
         float halfLambert = hairHalfNdotL + 0.5;
-        float width = max(hairShadow.y, 0.001);
-        float offset = hairOffset.x * pow(max(hm.g * hairOffset.y, 0.00001), hairOffset.z);
+        float offset = hairOffset.x * pow(hm.g * hairOffset.y, hairOffset.z);
 
-        // Solid shadow, from both captured draws: alpha over 0.5 and Process, through a Width band centered on 0.5.
-        float shadow = useMainTexA ? clamp((min(min(baseTex.a, 0.5) * 2.0 / hairSolid.x, 1.0) - (0.5 - hairSolid.y * 0.5)) / hairSolid.y, 0.0, 1.0) : 1.0;
+        float solid = 1.0;
 
-        lightIntensity = smoothstep(0.0, 1.0, (halfLambert - hairShadow.x + width + offset) / (width * 2.0)) * shadow;
+        if (useMainTexA) {
+            // Solid shadow, from both captured draws: alpha over 0.5 and Process, through a Width band centered on 0.5.
+            solid = min(min(baseTex.a, 0.5) * 2.0 / hairSolid.x, 1.0) - (0.5 - hairSolid.y * 0.5);
+            solid = clamp(solid / hairSolid.y, 0.0, 1.0);
+        }
+
+        lightIntensity = smoothstep(0.0, 1.0, (halfLambert - hairShadow.x + hairShadow.y + offset) / (hairShadow.y * 2.0)) * solid;
     } else {
         lightIntensity = 1.0 - shadow;
     }
@@ -330,7 +345,7 @@ void main() {
     float isLightBehind = smoothstep(0.0, 1.0, (-0.5 - dot(lightDir, vViewDir)) * 2.0);
     float reach = ((NdotL + 1.0) * 0.00375 + 0.0075) * max(facing - 0.2, 0.0) * (isLightBehind + 1.0) * (near + 1.0);
 
-    vec2 dir = normalize(normal.xy + 0.0001) * vec2(1.0, 0.5) * rimWidth * reach;
+    vec2 dir = normalize(normal.xy + EPSILON) * vec2(1.0, 0.5) * rimWidth * reach;
     float gap = (linearizeDepth(rimDepth, gl_FragCoord.xy / rimScreen + dir) - -vViewPos.z);
 
     if (ssRimLightThreshold == 0.0) {
@@ -342,8 +357,13 @@ void main() {
 
     rimIntensity = smoothstep(ssRimThreshold - 0.01, ssRimThreshold + 0.01, rimIntensity) * rimBrightness;
 #endif
+ 
+#ifdef IS_HAIR
+    if (hasRamp)
+#endif
+    shadow = 1.0 - lightIntensity;
 
-    shadow = 1.0 - lightIntensity - min(rimIntensity, 1.0);
+    shadow -= min(rimIntensity, 1.0);
     vec3 shadowTint = adjustSat(shadowTint, tintStrength);
 
     vec3 lightTint = adjustSat(lightTint, tintStrength);
@@ -401,11 +421,11 @@ void main() {
 #if defined(IS_OUTLINE) && defined(USE_COLOR_BURN_OUTLINES)
     vec3 outlineColor = mix(vec3(1.0), finalLighting, outlineLightInfluence);
 
-    vec3 colorBurn = 1.0 - (1.0 - baseColor) / max(baseColor, 0.001);
+    vec3 colorBurn = 1.0 - (1.0 - baseColor) / max(baseColor, EPSILON);
     outlineColor *= mix(baseColor, colorBurn, outlineBurnIntensity);
 
     float brightness = max(outlineColor.r, max(outlineColor.g, outlineColor.b));
-    outlineColor *= min(outlineMaxBrightness / max(brightness, 0.001), 1.0);
+    outlineColor *= min(outlineMaxBrightness / max(brightness, EPSILON), 1.0);
 
     gl_FragColor = vec4(outlineColor, 1.0);
     return;
@@ -417,7 +437,7 @@ void main() {
     if (hasBands) {
         vec2 uvMap = texture2D(bandUv, vUv).rg;
 
-        vec2 flatN = normalize(normal.xz + 0.0001);
+        vec2 flatN = normalize(normal.xz + EPSILON);
         float facing = dot(vec3(flatN.x, 0.0, flatN.y), vViewDir);
 
         float pitch = (viewMatrix * vec4(0.0, 1.0, 0.0, 0.0)).z;
@@ -428,9 +448,9 @@ void main() {
         vec3 soft = clamp(bandArea * (facing * 2.0 - 1.0) + (1.0 - facing), bandScale, vec3(1.0));
         float n0 = (texture2D(bandNoise, vec2(bandTiling[0] * uvMap.x + bandTiling[1], 0.5)).r * 2.0 - 1.0) * bandTiling[2];
         float n1 = (texture2D(bandNoise, vec2(bandTiling[3] * uvMap.x + bandTiling[4], 0.5)).r * 2.0 - 1.0) * bandTiling[5] - n0;
-        vec3 mute = (clamp(abs(d) / max(bandWidth, vec3(0.0001)), 0.0, 1.0) - 1.0) * bandMute + 1.0;
+        vec3 mute = (clamp(abs(d) / max(bandWidth, vec3(EPSILON)), 0.0, 1.0) - 1.0) * bandMute + 1.0;
         vec3 shift = mix(bandDown, bandUp, above) * (n1 * (above * bandNoiseOffset + bandUseNoise) + n0) * mute;
-        vec3 u = clamp((d + soft * bandWidth + shift) / max(vec3(0.0001), bandWidth * soft * 2.0), 0.0, 1.0);
+        vec3 u = clamp((d + soft * bandWidth + shift) / max(bandWidth * soft * 2.0, vec3(EPSILON)), 0.0, 1.0);
 
         vec4 rim = texture2D(bandRamp, vec2(NdotV, 0.875));
         vec3 masks = mix(hm.rrr, hm.bbb, bandMask) * mix(rim.rrr, rim.ggg, bandHidden);
@@ -440,20 +460,22 @@ void main() {
         color = hairBand(color, texture2D(bandRamp, vec2(u.y, 0.375)).rgb, masks.y, light.y);
         color = hairBand(color, texture2D(bandRamp, vec2(u.z, 0.625)).rgb, masks.z, light.z);
     } else {
-        // Highlight Old, but its colour is hand-picked per character in the blend: 
+        // Highlight Old, but its colour is hand-picked per character in the blend:
         // a fixed near-white turns dark hair into plastic, so the sheen follows the hair colour instead
         color = mix(baseColor, baseColor * 2.0 + 0.05, highlight * 0.5); // ponytail: 2.0, 0.05 and 0.5 eyeballed
     }
 #elif defined(IS_BODY)
-    float skin = hasFtm ? step(ftmG, 0.001) : hasId ? texture2D(idMap, vUv).r : 0.0;
-    float sss = (smootherstep(0.25, 0.0, halfNdotL) - baseShadow) * 3.0 - aoShadow - isMetallic;
-    vec3 middleTint = isWarmPalette ? (lightTint + shadowTint) * 0.5 : vec3(1.0);
+    if (hasSubsurfaceColor || hasSkinSubsurfaceColor) {
+        float skin = hasFtm ? step(ftmG, 0.0) : hasId ? texture2D(idMap, vUv).r : 0.0;
+        float sss = (smootherstep(0.25, 0.0, halfNdotL) - baseShadow) * 3.0 - aoShadow - isMetallic;
+        vec3 middleTint = isWarmPalette ? (lightTint + shadowTint) * 0.5 : vec3(1.0);
 
-    if (any(greaterThan(subsurfaceColor, vec3(0.0))))
-        color = mix(baseColor, subsurfaceColor * middleTint, clamp(sss - skin, 0.0, 1.0));
+        if (hasSubsurfaceColor)
+            color = mix(baseColor, subsurfaceColor * middleTint, clamp(sss - skin, 0.0, 1.0));
 
-    if (any(greaterThan(skinSubsurfaceColor, vec3(0.0))))
-        color = mix(color, skinSubsurfaceColor * middleTint, clamp(sss - (1.0 - skin), 0.0, 1.0));
+        if (hasSkinSubsurfaceColor)
+            color = mix(color, skinSubsurfaceColor * middleTint, clamp(sss - (1.0 - skin), 0.0, 1.0));
+    }
 #endif
 
     color *= finalLighting;
@@ -462,10 +484,8 @@ void main() {
         color *= mix(vec3(1.0), emissionColor * 1.1, step(0.8, baseTex.a) * 0.97);
 
 #ifdef IS_EYE
-    if (useEyeHighlights) {
-        const vec3 eyeHighlightColor = vec3(0.502685, 0.512441, 0.517708);
+    if (useEyeHighlights)
         color += texture2D(eyeHighlight, eyeUv).r * eyeHighlightColor + texture2D(eyeHighlight2, eyeUv).r * eyeHighlightColor;
-    }
 #endif
 
     // Color Grading
@@ -480,7 +500,7 @@ void main() {
     if (isFur) {
         float rim = 1.0 - abs(NdotV); // double-sided
         rim = pow(rim, 3.25);
-        gl_FragColor = vec4(color, texture2D(base, vUv2).r * rim);
+        gl_FragColor = vec4(color, baseTex.r * rim);
         return;
     }
 #endif
