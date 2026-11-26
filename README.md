@@ -3,11 +3,8 @@ I wanted an anime-style shader that runs on the web but couldn't find one anywhe
 Note: Assets are downloaded on the first visit. Once cached, pages load in just 1–2 seconds on PC.
 
 <p><img width="1360" height="768" alt="Anime-Style Shading of 3D Models (Three.js / GLSL)" src="https://github.com/user-attachments/assets/f6ea3355-f858-4276-8a8d-657710714c78" /></p>
-<details>
-<summary>Denia's Arms and Legs</summary>
-<p align="center"><img width="882" height="498" alt="Denia's Arms and Legs (Three.js Anime Shader)" src="https://github.com/user-attachments/assets/fe0f1a73-d627-4d26-8bdb-d1b9a31608f6" /></p>
-</details>
 <p><img width="1360" height="768" alt="Anime-Style Shading of 3D Models (Three.js / GLSL)" src="https://github.com/user-attachments/assets/de91621b-da75-4ec9-b866-0d5c36000d4b" /></p>
+<p align="center"><img width="882" height="498" alt="Denia's Legs (Three.js Anime Shader)" src="https://github.com/user-attachments/assets/b17b7b0a-abbd-4a22-87bd-8d53109a879a" /></p>
 
 ## Compatibility URLs
 | URL | Rim Lighting | Outlines | Comments |
