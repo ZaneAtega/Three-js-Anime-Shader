@@ -257,10 +257,7 @@ export const ApplyMats = (instance) => {
                 }
 
                 uniforms.subsurfaceColor = { value: getColor(colors.SubsurfaceColor) }; // [0.863, 0.46, 0.358] // [0.72, 0.51, 0.46]
-                uniforms.hasSubsurfaceColor = { value: uniforms.subsurfaceColor.value.some(v => v > 0) };
-
                 uniforms.skinSubsurfaceColor = { value: getColor(colors.SkinSubsurfaceColor) }; // [0.863, 0.46, 0.358] // [0.72, 0.51, 0.46]
-                uniforms.hasSkinSubsurfaceColor = { value: uniforms.skinSubsurfaceColor.value.some(v => v > 0) };
 
                 break;
         }
@@ -393,6 +390,9 @@ export const ApplyMats = (instance) => {
                 }
                 break;
         }
+
+        uniforms.hasSubsurfaceColor = { value: uniforms.subsurfaceColor?.value.some(v => v > 0) };
+        uniforms.hasSkinSubsurfaceColor = { value: uniforms.skinSubsurfaceColor?.value.some(v => v > 0) };
 
         uniforms.hasOutlineMask = { value: !!uniforms.outlineMask?.value };
     }
